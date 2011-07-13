@@ -34,20 +34,34 @@ typedef struct
 	uint8_t Hue;
 	uint8_t Brightness;
 	uint8_t ColorRange;
-	uint8_t CycleDuration;
+	uint8_t CycleDuration;//replace by ta tb
 	uint8_t Mode;
 	uint8_t Delay; //Delay before sending the msg
+
+	Prospects
+	uint8_t NbCycles
 } Effect;
 */
 /*
-c1   __________
-    /          \
-   /            \
-  /              \
- /                \____________
-c2
+Mode1
 
-[tA][tB      ][tC][tD          ]
+c1
+_________
+        |
+        |
+        |
+        --------------------
+black
+
+Mode2
+c1
+    /\
+   /  \
+  /    \
+ /      \___________________
+black
+
+[tA      ][tB              ]
 
 */
 
@@ -62,6 +76,7 @@ typedef struct
     Color BaseColor;
     uint8_t CyclePosition;
     uint8_t CycleDuration;
+    //uint8_t Offset;
 }LED;
 
 ////////////////////////////////////////////////////////////
@@ -77,8 +92,6 @@ uint8_t PercBetween(uint8_t v1, uint8_t v2, uint8_t nom, uint8_t denom)
 {
     v2 += (((int16_t)v1 - (int16_t)v2) * (int16_t)nom) / (uint16_t)denom;
     return v2;
-
-
 }
 void ColorBetween(Color *c, Color *c1, Color *c2, uint8_t nom, uint8_t denom)
 {
@@ -451,7 +464,6 @@ ISR(PCINT0_vect)
 
 ISR(PCINT3_vect)
 {
-
     if((PINA & _BV(0))==0)
         TreatInterupt(&PINA, 0);
 }
