@@ -2,7 +2,7 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="main.c" open="1" top="1" tabpos="3">
-		<Cursor position="2082" topLine="84" />
+		<Cursor position="7659" topLine="356" />
 	</File>
 	<File name="pwm.c" open="0" top="0" tabpos="3">
 		<Cursor position="1603" topLine="87" />
@@ -11,9 +11,9 @@
 		<Cursor position="927" topLine="8" />
 	</File>
 	<File name="uart.c" open="1" top="0" tabpos="1">
-		<Cursor position="773" topLine="26" />
+		<Cursor position="739" topLine="3" />
 	</File>
 	<File name="uart.h" open="1" top="0" tabpos="2">
-		<Cursor position="179" topLine="0" />
+		<Cursor position="328" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

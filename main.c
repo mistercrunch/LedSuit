@@ -6,8 +6,8 @@
 #include "pwm.h"
 #include "uart.h"
 #define U8 uint8_t
+
 #define NBLED 6
-#define NB_EFFECT_PARAMS 7
 #define START_TRANS_BYTE 0b10101010
 
 #define STATE_NULL              0
@@ -15,8 +15,22 @@
 #define STATE_MSG_RECEIVED      12
 #define STATE_BAD_MSG_RECEIVED  13
 #define STATE_OLD_MSG_RECEIVED  14
-#define STATE_WAS_INTERUPTED    15
+#define STATE_WAITING_TO_SEND   15
 
+
+
+#define NB_EFFECT_PARAMS 7
+#define EP_MSG_NUMBER           0
+#define EP_HUE                  1
+#define EP_COLOR_RANGE          2
+#define EP_TA                   3
+#define EP_TB                   4
+#define EP_MODE                 5
+#define EP_DELAY                6
+
+#define NB_MODES                2
+#define M_FLASH                 0
+#define M_FADE                  1
 
 //#define RAND_MAX 255
 
@@ -27,21 +41,7 @@ uint8_t aCurrentEffect[NB_EFFECT_PARAMS];
 int     UartDelay=0;
 uint8_t SendDelay=0;
 uint8_t Message=STATE_NULL;
-/*
-typedef struct
-{
-    uint8_t MsgNumber;
-	uint8_t Hue;
-	uint8_t Brightness;
-	uint8_t ColorRange;
-	uint8_t CycleDuration;//replace by ta tb
-	uint8_t Mode;
-	uint8_t Delay; //Delay before sending the msg
 
-	Prospects
-	uint8_t NbCycles
-} Effect;
-*/
 /*
 Mode1
 
@@ -76,6 +76,7 @@ typedef struct
     Color BaseColor;
     uint8_t CyclePosition;
     uint8_t CycleDuration;
+    uint8_t OffSet;//Offset is assigned randomly when a new effect is loaded. It makes the different leds not in sync
     //uint8_t Offset;
 }LED;
 
@@ -105,28 +106,26 @@ void RandomEffect()
     //Modes
     //Mode 1 = flash
     //Mode 2 = fade in / fade out
-    //Mode 3 = Command, set yourself to random pattern
 
+    aCurrentEffect[EP_MODE]             = (rand()%2)+1;
+    aCurrentEffect[EP_MSG_NUMBER]++;                            //MsgNumber
+	aCurrentEffect[EP_HUE]              = rand();       //Hue
+	aCurrentEffect[EP_COLOR_RANGE]      = rand()%100;   //ColorRange
 
-    aCurrentEffect[5]               = (rand()%2)+1;            //Mode
-    aCurrentEffect[0]++;                            //MsgNumber
-	aCurrentEffect[1]               = rand();       //Hue
-	aCurrentEffect[2]               = 127;          //Brightness
-	aCurrentEffect[3]               = rand()%100;   //ColorRange
-	aCurrentEffect[4]               = 2+rand()%100;  //CycleDuration
+	if(aCurrentEffect[EP_MODE]==1)
+	{
+	    aCurrentEffect[EP_TA]           = 1+rand()%5;       //Delay
+	    aCurrentEffect[EP_TB]           = aCurrentEffect[EP_TA] + rand()%20
+	}
+	else
+	{
+	    aCurrentEffect[EP_TA]            = 30+rand()%50;       //Delay
+	    aCurrentEffect[EP_TB]            = 0
+	}
 
-	if(aCurrentEffect[5]==1)
-        aCurrentEffect[4]               = 2+rand()%10;       //Delay
-	else if (aCurrentEffect[5]==2)
-        aCurrentEffect[4]               = 30+rand()%50;       //Delay
+    aCurrentEffect[EP_DELAY]=(rand()%30) +2;
 
-//aCurrentEffect[4]  =100;
-    aCurrentEffect[6]=(rand()%30) +2;
-//aCurrentEffect[6]=100;
-
-
-	SendDelay=aCurrentEffect[6];
-
+	SendDelay=aCurrentEffect[EP_DELAY];
 }
 
 void SendEffect()
@@ -146,8 +145,8 @@ void SendEffect()
 
     UART_SendByte(UART_CheckCRC(aCurrentEffect));
 
-    //UartDelay=(int)aCurrentEffect[6]+((int)aCurrentEffect[6]/2);
-    UartDelay=((int)aCurrentEffect[6]) * 3;
+
+    UartDelay=((int)aCurrentEffect[EP_DELAY]) * 3;
     sei();
 
 }
@@ -174,7 +173,7 @@ void ReceiveEffect(volatile uint8_t *PINX, uint8_t PinNum)
                 aCurrentEffect[i]=tmpEffect[i];
 
             State=STATE_MSG_RECEIVED;
-            SendDelay=aCurrentEffect[6];
+            SendDelay=aCurrentEffect[EP_DELAY];
         }
         //else Message=STATE_OLD_MSG_RECEIVED;
     }
@@ -303,10 +302,6 @@ void Msg()
         {
             SetAllRGB(0,255,0);
         }
-        else if (Message==STATE_WAS_INTERUPTED)
-        {
-            SetAllRGB(255,255,255);
-        }
         else if(Message<6)
         {
             SetAllRGB(0,0,0);
@@ -365,12 +360,17 @@ int main(void)
             //Someone Pushed the button
             srand(TCNT0);
             RandomEffect();
-            //for(int i=0;i<10;i++)
 
             State=STATE_MSG_RECEIVED;
         }
         else if(State==STATE_MSG_RECEIVED)
         {
+            //for(i=0;i<NBLED;i++)
+            //    LEDs[i].OffSet = Ra
+            //InitEFFECT!
+            State=STATE_WAITING_TO_SEND;
+        }
+        else if(State==STATE_WAITING_TO_SEND)
             if(SendDelay==0)
             {
                 SendEffect();
@@ -382,29 +382,30 @@ int main(void)
 
         for(i=0;i<NBLED;i++)
         {
-            if(aCurrentEffect[5]==1)
+            if(aCurrentEffect[EP_MODE]==M_FLASH)
             {
-                if(LEDs[i].CyclePosition >= (LEDs[i].CycleDuration/4))
+                if(LEDs[i].CyclePosition >= aCurrentEffect[EP_TA])
                     SetRGB(i,0,0,0);
                 else
-
                     MatchColor(&LEDs[i].BaseColor, &LEDs[i].c);
             }
-            else if(aCurrentEffect[5]==2)
+            else if(aCurrentEffect[EP_MODE]==M_FADE)
             {
-                uint8_t HalfCycleDuration = LEDs[i].CycleDuration/2;
-                if(LEDs[i].CyclePosition<LEDs[i].CycleDuration/2)
+                uint8_t HalfCycleDuration = aCurrentEffect[EP_TA] / 2;
+                if(LEDs[i].CyclePosition < HalfCycleDuration)
                     ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, LEDs[i].CyclePosition, HalfCycleDuration);
-                else
+                else if(LEDs[i].CyclePosition < aCurrentEffect[EP_TA])
                     ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, HalfCycleDuration - (LEDs[i].CyclePosition- HalfCycleDuration), HalfCycleDuration );
-
+                else
+                    MatchColor(&LEDs[i].BaseColor, &LEDs[i].c);
             }
+
             LEDs[i].CyclePosition++;
             if(LEDs[i].CyclePosition >= LEDs[i].CycleDuration)
             {
                     LEDs[i].CyclePosition = 0;
-                    LEDs[i].CycleDuration = aCurrentEffect[4]/*CycleDuration*/+ (rand()%5);
-                    SetHue(&LEDs[i].BaseColor, aCurrentEffect[1]/*Hue*/+ (rand()%aCurrentEffect[3]/*ColorRange*/));
+                    LEDs[i].CycleDuration = aCurrentEffect[EP_TA] + aCurrentEffect[EP_TB]
+                    SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + (rand() % aCurrentEffect[EP_COLOR_RANGE]));
             }
         }
         TransferToPWM();
@@ -425,12 +426,8 @@ void Test()
 
 void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
 {
-
-
     cli();
     PWM_AllOff();
-
-    //while((PINB & _BV(7)) ==0){}
 
     uint8_t UartByte = UART_ReadByte(PINX, PinNum);
 
@@ -446,8 +443,6 @@ void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
         }
     }
     //else Message=STATE_BAD_MSG_RECEIVED;
-
-    //Message=STATE_WAS_INTERUPTED;
 
     sei();
 }
