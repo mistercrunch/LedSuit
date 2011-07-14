@@ -1,5 +1,4 @@
-#include <avr/interrupt.h>
-#include <util/delay.h>
+
 #define U8 uint8_t
 
 void        UART_SendByte(U8 byte);

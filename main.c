@@ -1,9 +1,9 @@
-#include <avr/io.h>
-#include <avr/io.h>
+
 #include <util/delay.h>
-#include <util/delay_basic.h>
-#include <avr/sleep.h>
-#include "pwm.h"
+
+#include <stdlib.h>
+
+
 #include "uart.h"
 #define U8 uint8_t
 
@@ -16,8 +16,6 @@
 #define STATE_BAD_MSG_RECEIVED  13
 #define STATE_OLD_MSG_RECEIVED  14
 #define STATE_WAITING_TO_SEND   15
-
-
 
 #define NB_EFFECT_PARAMS 7
 #define EP_MSG_NUMBER           0
@@ -32,15 +30,12 @@
 #define M_FLASH                 0
 #define M_FADE                  1
 
-//#define RAND_MAX 255
+#include <avr/interrupt.h>
 
-////////////////////////////////////////////////////////////
-//Strucstses!
-////////////////////////////////////////////////////////////
-uint8_t aCurrentEffect[NB_EFFECT_PARAMS];
-int     UartDelay=0;
-uint8_t SendDelay=0;
-uint8_t Message=STATE_NULL;
+#define PWM_FREQUENCY   0x04
+#define PauseClock() TCCR0A  &= ~0b00000100; // clk/256 0b00000101 for 1024
+#define ResumeClock() TCCR0A |=  0b00000100;
+
 
 /*
 Mode1
@@ -65,6 +60,10 @@ black
 
 */
 
+////////////////////////////////////////////////////////////
+//Strucstses!
+////////////////////////////////////////////////////////////
+
 typedef struct
 {
   U8 R,G,B;
@@ -76,9 +75,10 @@ typedef struct
     Color BaseColor;
     uint8_t CyclePosition;
     uint8_t CycleDuration;
-    uint8_t OffSet;//Offset is assigned randomly when a new effect is loaded. It makes the different leds not in sync
+    //uint8_t OffSet;//Offset is assigned randomly when a new effect is loaded. It makes the different leds not in sync
     //uint8_t Offset;
 }LED;
+
 
 ////////////////////////////////////////////////////////////
 //Gloabal Vars
@@ -89,6 +89,133 @@ volatile uint8_t    State= STATE_NULL;
 //Effect              CurrentEffect;
 LED                 LEDs[NBLED];
 Color cBlack;
+uint8_t aCurrentEffect[NB_EFFECT_PARAMS];
+int     UartDelay=0;
+uint8_t SendDelay=0;
+uint8_t Message=STATE_NULL;
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+//PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM_PWM
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+void PWM_SwitchPins()
+{/*
+  uint8_t i;
+  for (i=1; i<4;  i++)  if (PWM_pins[i]  > TCNT0) PORTA &= ~(1 << i); else PORTA |= (1 << i);
+  for (i=0; i<8;  i++)
+  {
+    //if (PWM_pins[i+4]    > TCNT0) PORTB &= ~(1 << i); else PORTB |= (1 << i);
+    if (PWM_pins[i+12]   > TCNT0) PORTC &= ~(1 << i); else PORTC |= (1 << i);
+    if (PWM_pins[i+20]   > TCNT0) PORTD &= ~(1 << i); else PORTD |= (1 << i);
+  }
+  */
+  if (LEDs[0].c.R > TCNT0) PORTD &= 0b11111011; else PORTD |= 0b00000100;//PD2
+  if (LEDs[0].c.G > TCNT0) PORTD &= 0b11111101; else PORTD |= 0b00000010;//PD1
+  if (LEDs[0].c.B > TCNT0) PORTD &= 0b11111110; else PORTD |= 0b00000001;//PD0
+
+  if (LEDs[1].c.R > TCNT0) PORTA &= 0b11110111; else PORTA |= 0b00001000;//PA3
+  if (LEDs[1].c.G > TCNT0) PORTC &= 0b11011111; else PORTC |= 0b00100000;//PC5
+  if (LEDs[1].c.B > TCNT0) PORTC &= 0b11101111; else PORTC |= 0b00010000;//PC4
+
+  if (LEDs[2].c.R > TCNT0) PORTC &= 0b11110111; else PORTC |= 0b00001000;//PC3
+  if (LEDs[2].c.G > TCNT0) PORTC &= 0b11111011; else PORTC |= 0b00000100;//PC2
+  if (LEDs[2].c.B > TCNT0) PORTC &= 0b11111101; else PORTC |= 0b00000010;//PC1
+
+  if (LEDs[3].c.R > TCNT0) PORTC &= 0b01111111; else PORTC |= 0b10000000;//PC7
+  if (LEDs[3].c.G > TCNT0) PORTA &= 0b11111101; else PORTA |= 0b00000010;//PA1
+  if (LEDs[3].c.B > TCNT0) PORTC &= 0b11111110; else PORTC |= 0b00000001;//PC0
+
+  if (LEDs[4].c.R > TCNT0) PORTD &= 0b11011111; else PORTD |= 0b00100000;//PD5
+  if (LEDs[4].c.G > TCNT0) PORTD &= 0b10111111; else PORTD |= 0b01000000;//PD6
+  if (LEDs[4].c.B > TCNT0) PORTD &= 0b01111111; else PORTD |= 0b10000000;//PD7
+
+  if (LEDs[4].c.R > TCNT0) PORTD &= 0b11110111; else PORTD |= 0b00001000;//PD3
+  if (LEDs[4].c.G > TCNT0) PORTD &= 0b11101111; else PORTD |= 0b00010000;//PD4
+  if (LEDs[4].c.B > TCNT0) PORTD &= 0b11111011; else PORTD |= 0b00000100;//PD2
+}
+void PWM_AllOff()
+{
+    PORTA &= 0b11110101;
+    PORTC &= 0b00000000;
+    PORTD &= 0b01000000;
+}
+void PWM_Reset()
+{
+    PauseClock();
+
+    TCNT0 = 0;
+
+    PWM_SwitchPins();
+    //FirstTick();
+
+    OCR0A=1;
+    // reset timer value
+    // timer 2 on
+    ResumeClock();
+}
+
+void PWM_init(){
+
+  PWM_AllOff();
+
+  PauseClock(); // timer off (turned on by PWM_set())
+  TIMSK0    |= 0b00000011;           // output compare match interrupt enable // overflow interrupt enable
+  //TIFR0     |= 0b00000011;
+  OCR0A = 1;
+  TCNT0 = 0;
+  ResumeClock();
+}
+
+
+/***************************************
+               INTERRUPTS
+***************************************/
+
+SIGNAL(TIMER0_COMPA_vect){
+
+    PauseClock();
+
+    PWM_SwitchPins();
+    //Tick();
+    //PORTC &= ~(1 << i)
+    //Increment to stop at next clock tick
+    OCR0A+=8;
+    ResumeClock();
+
+}
+
+SIGNAL(TIMER0_OVF_vect ){
+    PWM_Reset();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 uint8_t PercBetween(uint8_t v1, uint8_t v2, uint8_t nom, uint8_t denom)
 {
     v2 += (((int16_t)v1 - (int16_t)v2) * (int16_t)nom) / (uint16_t)denom;
@@ -185,8 +312,6 @@ void ReceiveEffect(volatile uint8_t *PINX, uint8_t PinNum)
         //else Message=STATE_OLD_MSG_RECEIVED;
     }
     //else Message=STATE_BAD_MSG_RECEIVED;
-
-
 }
 
 void SetHue(Color *_c, uint8_t _Hue)
@@ -260,39 +385,6 @@ void AllBlack()
     SetAllRGB(0,0,0);
 }
 
-
-void TransferToPWM()
-{
-//    InitPWM();
-    PWM_pins[22] = LEDs[0].c.R;//PD2
-    PWM_pins[21] = LEDs[0].c.G;//PD1
-    PWM_pins[20] = LEDs[0].c.B;//PD0
-
-    PWM_pins[3]  = LEDs[1].c.R;//PA3
-    PWM_pins[17] = LEDs[1].c.G;//PC5
-    PWM_pins[16] = LEDs[1].c.B;//PC4
-
-    PWM_pins[15] = LEDs[2].c.R;//PC3
-    PWM_pins[14] = LEDs[2].c.G;//PC2
-    PWM_pins[13] = LEDs[2].c.B;//PC1
-
-    PWM_pins[19] = LEDs[3].c.R;//PC7
-    PWM_pins[1]  = LEDs[3].c.G;//PA1
-    PWM_pins[12] = LEDs[3].c.B;//PC0
-
-    PWM_pins[25] = LEDs[4].c.R;//PD5
-    PWM_pins[26] = LEDs[4].c.G;//PD6
-    PWM_pins[27] = LEDs[4].c.B;//PD7
-
-    PWM_pins[23] = LEDs[5].c.R;//PD3
-    PWM_pins[24] = LEDs[5].c.G;//PD4
-    PWM_pins[2]  = LEDs[5].c.B;//PA2
-
-    //PWM_prep();
-}
-
-
-
 void Msg()
 {
     if(Message!=STATE_NULL)
@@ -315,7 +407,7 @@ void Msg()
             SetRGB(State,0,255,0);
         }
 
-        TransferToPWM();
+        //TransferToPWM();
         _delay_ms(500);
         Message=STATE_NULL;
     }
@@ -422,7 +514,7 @@ int main(void)
                     //SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + 0));
             }
         }
-        TransferToPWM();
+
         _delay_ms(5);
     }
 }
@@ -430,13 +522,6 @@ int main(void)
 //////////////////////////////////////////////////////
 //Interupts
 //////////////////////////////////////////////////////
-void Test()
-{
-    PWM_AllOff();
-    PORTD=0b00000000;
-    _delay_ms(250);
-    PWM_AllOff();
-}
 
 void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
 {
@@ -476,3 +561,13 @@ ISR(PCINT3_vect)
     if((PINA & _BV(0))==0)
         TreatInterupt(&PINA, 0);
 }
+
+
+
+
+
+
+
+
+
+

@@ -29,3 +29,23 @@
 	<util/delay.h>
 	<util/crc16.h>
 
+1310672926 source:/home/mistercrunch/Code/LedSuit/pwm.c
+
+1310671142 /home/mistercrunch/Code/LedSuit/pwm.h
+	<avr/io.h>
+	<avr/interrupt.h>
+	<stdlib.h>
+
+1310675369 source:/home/mistercrunch/Code/LedSuit/uart.c
+	<avr/interrupt.h>
+	<util/delay.h>
+	<util/crc16.h>
+
+1310675542 source:/home/mistercrunch/Code/LedSuit/main.c
+	<util/delay.h>
+	<stdlib.h>
+	"uart.h"
+	<avr/interrupt.h>
+
+1310675568 /home/mistercrunch/Code/LedSuit/uart.h
+

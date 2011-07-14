@@ -29,7 +29,7 @@ volatile uint8_t PWM_pins[PWM_PINS_NUMBER];
 /***************************************
          FUNCTIONS DECLARATIONS
 ***************************************/
-void PWM_init(void);
+void PWM_init(LED *l);
 void PWM_SwitchPins(void);
 void PWM_set(uint8_t PWM_pin, uint8_t PWM_duty_cycle);
 void PWM_Reset(void);
