@@ -38,8 +38,8 @@ Discarded input sections
 
  .stab          0x0000000000000000      0x6b4 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/crttn48.o
  .stabstr       0x0000000000000000       0x64 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/crttn48.o
- .stab          0x0000000000000000     0x1638 obj/Debug/main.o
- .stabstr       0x0000000000000000      0xe23 obj/Debug/main.o
+ .stab          0x0000000000000000     0x1344 obj/Debug/main.o
+ .stabstr       0x0000000000000000      0xd2b obj/Debug/main.o
  .stab          0x0000000000000000       0xf0 obj/Debug/pwm.o
  .stabstr       0x0000000000000000      0x2ad obj/Debug/pwm.o
  .stab          0x0000000000000000      0x8ac obj/Debug/uart.o
@@ -161,7 +161,7 @@ LOAD /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000      0xf68
+.text           0x0000000000000000      0xdfe
  *(.vectors)
  .vectors       0x0000000000000000       0x28 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/crttn48.o
                 0x0000000000000000                __vectors
@@ -233,7 +233,7 @@ LOAD /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a
                 0x000000000000005e                __vector_10
                 0x000000000000005e                __vector_16
                 0x000000000000005e                __vector_18
- .text          0x0000000000000060      0xada obj/Debug/main.o
+ .text          0x0000000000000060      0x970 obj/Debug/main.o
                 0x0000000000000060                PWM_SwitchPins
                 0x0000000000000296                PWM_AllOff
                 0x00000000000002b4                PWM_Reset
@@ -243,78 +243,74 @@ LOAD /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a
                 0x00000000000003b0                PercBetween
                 0x00000000000003cc                ColorBetween
                 0x000000000000042c                SetHue
-                0x0000000000000466                CloneColor
-                0x0000000000000488                MatchColor
-                0x00000000000004a0                DimColor
-                0x00000000000004dc                Clip
-                0x00000000000004f0                SetRGB
-                0x0000000000000522                SetAllRGB
-                0x000000000000054c                AllBlack
-                0x0000000000000556                Msg
-                0x00000000000005ba                setup
-                0x00000000000005f0                RandomEffect
-                0x00000000000006ba                ReceiveEffect
-                0x000000000000077a                TreatInterupt
-                0x00000000000007b2                __vector_6
-                0x0000000000000802                __vector_3
-                0x0000000000000870                SendEffect
-                0x00000000000008c0                main
- .text          0x0000000000000b3a        0x0 obj/Debug/pwm.o
- .text          0x0000000000000b3a      0x1d4 obj/Debug/uart.o
-                0x0000000000000b3a                UART_AllEars
-                0x0000000000000b82                UART_AllOut
-                0x0000000000000bca                UART_Push0
-                0x0000000000000be8                UART_Push1
-                0x0000000000000c06                UART_SendByte
-                0x0000000000000c4a                UART_ReadByte
-                0x0000000000000ce0                UART_CheckCRC
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulhi3.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodqi4.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodhi4.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodhi4.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_clear_bss.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/libc.a(rand.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulsi3.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodsi4.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_prologue.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_epilogue.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_copy_data.o)
- .text          0x0000000000000d0e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodsi4.o)
-                0x0000000000000d0e                . = ALIGN (0x2)
+                0x0000000000000466                MatchColor
+                0x000000000000047e                SetRGB
+                0x00000000000004b0                SetAllRGB
+                0x00000000000004da                AllBlack
+                0x00000000000004e4                setup
+                0x000000000000051a                RandomEffect
+                0x0000000000000552                ReceiveEffect
+                0x0000000000000612                TreatInterupt
+                0x000000000000064a                __vector_6
+                0x000000000000069a                __vector_3
+                0x0000000000000708                SendEffect
+                0x0000000000000758                main
+ .text          0x00000000000009d0        0x0 obj/Debug/pwm.o
+ .text          0x00000000000009d0      0x1d4 obj/Debug/uart.o
+                0x00000000000009d0                UART_AllEars
+                0x0000000000000a18                UART_AllOut
+                0x0000000000000a60                UART_Push0
+                0x0000000000000a7e                UART_Push1
+                0x0000000000000a9c                UART_SendByte
+                0x0000000000000ae0                UART_ReadByte
+                0x0000000000000b76                UART_CheckCRC
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulhi3.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodqi4.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodhi4.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodhi4.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_clear_bss.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/libc.a(rand.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulsi3.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodsi4.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_prologue.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_epilogue.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_copy_data.o)
+ .text          0x0000000000000ba4        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodsi4.o)
+                0x0000000000000ba4                . = ALIGN (0x2)
  *(.text.*)
- .text.libgcc   0x0000000000000d0e       0x24 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulhi3.o)
-                0x0000000000000d0e                __mulhi3
- .text.libgcc   0x0000000000000d32       0x18 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodqi4.o)
-                0x0000000000000d32                __udivmodqi4
- .text.libgcc   0x0000000000000d4a       0x28 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodhi4.o)
-                0x0000000000000d4a                __udivmodhi4
- .text.libgcc   0x0000000000000d72       0x26 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodhi4.o)
-                0x0000000000000d72                __divmodhi4
-                0x0000000000000d72                _div
- .text.libgcc   0x0000000000000d98        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
- .text.libgcc   0x0000000000000d98        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc   0x0000000000000ba4       0x24 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulhi3.o)
+                0x0000000000000ba4                __mulhi3
+ .text.libgcc   0x0000000000000bc8       0x18 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodqi4.o)
+                0x0000000000000bc8                __udivmodqi4
+ .text.libgcc   0x0000000000000be0       0x28 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodhi4.o)
+                0x0000000000000be0                __udivmodhi4
+ .text.libgcc   0x0000000000000c08       0x26 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodhi4.o)
+                0x0000000000000c08                __divmodhi4
+                0x0000000000000c08                _div
+ .text.libgcc   0x0000000000000c2e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
+ .text.libgcc   0x0000000000000c2e        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_clear_bss.o)
  .text.avr-libc
-                0x0000000000000d98       0xb2 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/libc.a(rand.o)
-                0x0000000000000e28                rand_r
-                0x0000000000000e2c                rand
-                0x0000000000000e34                srand
- .text.libgcc   0x0000000000000e4a       0x32 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulsi3.o)
-                0x0000000000000e4a                __mulsi3
- .text.libgcc   0x0000000000000e7c       0x36 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodsi4.o)
-                0x0000000000000e7c                __divmodsi4
- .text.libgcc   0x0000000000000eb2       0x38 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_prologue.o)
-                0x0000000000000eb2                __prologue_saves__
- .text.libgcc   0x0000000000000eea       0x36 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_epilogue.o)
-                0x0000000000000eea                __epilogue_restores__
- .text.libgcc   0x0000000000000f20        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_copy_data.o)
- .text.libgcc   0x0000000000000f20       0x44 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodsi4.o)
-                0x0000000000000f20                __udivmodsi4
-                0x0000000000000f64                . = ALIGN (0x2)
+                0x0000000000000c2e       0xb2 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/libc.a(rand.o)
+                0x0000000000000cbe                rand_r
+                0x0000000000000cc2                rand
+                0x0000000000000cca                srand
+ .text.libgcc   0x0000000000000ce0       0x32 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_mulsi3.o)
+                0x0000000000000ce0                __mulsi3
+ .text.libgcc   0x0000000000000d12       0x36 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_divmodsi4.o)
+                0x0000000000000d12                __divmodsi4
+ .text.libgcc   0x0000000000000d48       0x38 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_prologue.o)
+                0x0000000000000d48                __prologue_saves__
+ .text.libgcc   0x0000000000000d80       0x36 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_epilogue.o)
+                0x0000000000000d80                __epilogue_restores__
+ .text.libgcc   0x0000000000000db6        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc   0x0000000000000db6       0x44 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_udivmodsi4.o)
+                0x0000000000000db6                __udivmodsi4
+                0x0000000000000dfa                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000000f64        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
-                0x0000000000000f64                exit
-                0x0000000000000f64                _exit
+ .fini9         0x0000000000000dfa        0x0 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
+                0x0000000000000dfa                exit
+                0x0000000000000dfa                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -333,11 +329,11 @@ LOAD /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000000f64        0x4 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
+ .fini0         0x0000000000000dfa        0x4 /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000000f68                _etext = .
+                0x0000000000000dfe                _etext = .
 
-.data           0x0000000000800100        0x4 load address 0x0000000000000f68
+.data           0x0000000000800100        0x4 load address 0x0000000000000dfe
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.3.5/../../../avr/lib/avr25/crttn48.o
@@ -396,8 +392,8 @@ LOAD /usr/lib/gcc/avr/4.3.5/avr25/libgcc.a
                 0x0000000000800110                LEDs
                 0x0000000000800140                cBlack
                 0x0000000000800143                PROVIDE (__bss_end, .)
-                0x0000000000000f68                __data_load_start = LOADADDR (.data)
-                0x0000000000000f6c                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0000000000000dfe                __data_load_start = LOADADDR (.data)
+                0x0000000000000e02                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x0000000000800143        0x0
                 0x0000000000800143                PROVIDE (__noinit_start, .)
@@ -489,14 +485,10 @@ Cross Reference Table
 
 Symbol                                            File
 AllBlack                                          obj/Debug/main.o
-Clip                                              obj/Debug/main.o
-CloneColor                                        obj/Debug/main.o
 ColorBetween                                      obj/Debug/main.o
-DimColor                                          obj/Debug/main.o
 LEDs                                              obj/Debug/main.o
 MatchColor                                        obj/Debug/main.o
 Message                                           obj/Debug/main.o
-Msg                                               obj/Debug/main.o
 PWM_AllOff                                        obj/Debug/main.o
 PWM_Reset                                         obj/Debug/main.o
 PWM_SwitchPins                                    obj/Debug/main.o

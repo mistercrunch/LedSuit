@@ -13,12 +13,16 @@
 				<Option compiler="avrgcc" />
 				<Compiler>
 					<Add option="-Os" />
+					<Add option="-O" />
 					<Add option="-g" />
-					<Add option="-std=c99" />
 				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-O3" />
 			<Add option="-O2" />
 			<Add option="-O1" />
 			<Add option="-O" />

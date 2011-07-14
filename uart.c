@@ -66,7 +66,8 @@ void UART_SendByte(U8 byte)
     UART_Push0();
     UART_Push1();
 
-    for(U8 i=0; i<8; i++)
+    U8 i;
+    for(i=0; i<8; i++)
     {
         if (byte >> i & 1)
             UART_Push0();
@@ -90,7 +91,8 @@ U8 UART_ReadByte(volatile uint8_t *PINX, uint8_t PinNum)
     _delay_loop_2 (BIT_LENGHT);
     _delay_loop_2 (HALF_BIT_LENGHT);//Delaying half a bit to sample in the middle of the bit lenght
 
-    for(U8 i=0; i<8; i++)
+    U8 i;
+    for(i=0; i<8; i++)
     {
         if((*PINX & _BV(PinNum)) == 0)
             msg|= 1 << i;
@@ -102,7 +104,8 @@ U8 UART_ReadByte(volatile uint8_t *PINX, uint8_t PinNum)
 uint8_t UART_CheckCRC(uint8_t MyArray[])
 {
         uint8_t crc = 0;
-        for (uint8_t i = 0; i < sizeof MyArray ; i++)
+        uint8_t i;
+        for (i = 0; i < sizeof MyArray ; i++)
             crc = _crc_ibutton_update(crc, MyArray[i]);
 
         return crc; // must be 0

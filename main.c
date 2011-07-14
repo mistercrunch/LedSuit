@@ -234,11 +234,11 @@ void RandomEffect()
     //Mode 1 = flash
     //Mode 2 = fade in / fade out
 
-    aCurrentEffect[EP_MODE]             = (rand()%2);
-    aCurrentEffect[EP_MSG_NUMBER]++;                            //MsgNumber
-	aCurrentEffect[EP_HUE]              = rand();       //Hue
-	aCurrentEffect[EP_COLOR_RANGE]      = rand()%100;   //ColorRange
-
+    //aCurrentEffect[EP_MODE]             = (rand()%2);
+                               //MsgNumber
+	//aCurrentEffect[EP_HUE]              = rand();       //Hue
+	//aCurrentEffect[EP_COLOR_RANGE]      = rand()%100;   //ColorRange
+/*
 	if(aCurrentEffect[EP_MODE]==1)
 	{
 	    aCurrentEffect[EP_TA]           = 1+rand()%5;       //Delay
@@ -249,9 +249,8 @@ void RandomEffect()
 	    aCurrentEffect[EP_TA]            = 30+rand()%50;       //Delay
 	    aCurrentEffect[EP_TB]            = 0;
 	}
-
+*/
     aCurrentEffect[EP_DELAY]=(rand()%30) +2;
-
 	SendDelay=aCurrentEffect[EP_DELAY];
 
 	///////////////////////////////
@@ -260,6 +259,8 @@ void RandomEffect()
 	aCurrentEffect[EP_TB]               = 100;
 	aCurrentEffect[EP_HUE]              = 0;
 	aCurrentEffect[EP_COLOR_RANGE]      = 50;
+
+	aCurrentEffect[EP_MSG_NUMBER]++;
 }
 
 void SendEffect()
@@ -273,8 +274,8 @@ void SendEffect()
     //UART_Push1();
 
     UART_SendByte(START_TRANS_BYTE);
-
-    for(uint8_t i=0; i<NB_EFFECT_PARAMS;i++)
+    uint8_t i;
+    for(i=0; i<NB_EFFECT_PARAMS;i++)
         UART_SendByte(aCurrentEffect[i]);
 
     UART_SendByte(UART_CheckCRC(aCurrentEffect));
@@ -289,8 +290,8 @@ void ReceiveEffect(volatile uint8_t *PINX, uint8_t PinNum)
 {
 
     uint8_t tmpEffect[NB_EFFECT_PARAMS];
-
-    for(uint8_t i=0; i<NB_EFFECT_PARAMS;i++)
+    uint8_t i;
+    for( i=0; i<NB_EFFECT_PARAMS;i++)
         tmpEffect[i] = UART_ReadByte(PINX, PinNum);
 
     uint8_t errorFlag = 0;
@@ -303,7 +304,8 @@ void ReceiveEffect(volatile uint8_t *PINX, uint8_t PinNum)
     {
         if(aCurrentEffect[0]!=tmpEffect[0])
         {
-            for(uint8_t i=0; i<NB_EFFECT_PARAMS;i++)
+            uint8_t i;
+            for( i=0; i<NB_EFFECT_PARAMS;i++)
                 aCurrentEffect[i]=tmpEffect[i];
 
             State=STATE_MSG_RECEIVED;
@@ -337,6 +339,7 @@ void SetHue(Color *_c, uint8_t _Hue)
         (*_c).G = 0;
     }
 }
+/*
 Color CloneColor(Color *_c)
 {
     Color c;
@@ -345,21 +348,22 @@ Color CloneColor(Color *_c)
     c.B = (*_c).B;
     return c;
 }
-
+*/
 void MatchColor(Color *Source, Color *Destination)
 {
     (*Destination).R = (*Source).R;
     (*Destination).G = (*Source).G;
     (*Destination).B = (*Source).B;
 }
-
+/*
 void DimColor(Color *_c, uint8_t v)
 {
         (*_c).R = ((*_c).R * v) /255;
         (*_c).G = ((*_c).G * v) /255;
         (*_c).B = ((*_c).B * v) /255;
 }
-
+*/
+/*
 uint8_t Clip(int16_t v)
 //Used to make sure the result of an equation is between 0-255
 {
@@ -367,6 +371,7 @@ uint8_t Clip(int16_t v)
     else if (v <0)  return 0;
     else            return ((uint8_t)v);
 }
+*/
 
 void SetRGB(U8 LedNum, U8 _R, U8 _G, U8 _B)
 {
@@ -377,14 +382,15 @@ void SetRGB(U8 LedNum, U8 _R, U8 _G, U8 _B)
 
 void SetAllRGB(U8 R, U8 G, U8 B)
 {
-    for(U8 i=0;i<NBLED;i++)
+    U8 i;
+    for(i=0;i<NBLED;i++)
         SetRGB(i,R,G,B);
 }
 void AllBlack()
 {
     SetAllRGB(0,0,0);
 }
-
+/*
 void Msg()
 {
     if(Message!=STATE_NULL)
@@ -411,7 +417,7 @@ void Msg()
         _delay_ms(500);
         Message=STATE_NULL;
     }
-}
+}*/
 
 //////////////////////////////////////////////////////
 //Core
@@ -436,7 +442,7 @@ void setup()
     PWM_init();
 
 }
-int main(void)
+int main()
 {
     srand(TCNT0);
     setup();
@@ -447,9 +453,9 @@ int main(void)
 
     U8 i=0;
 
-    while(1)
+    for(;;)
     {
-        Msg();
+        //Msg();
 
         if(UartDelay>0)
             UartDelay--;
