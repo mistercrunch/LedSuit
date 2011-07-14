@@ -107,7 +107,7 @@ void RandomEffect()
     //Mode 1 = flash
     //Mode 2 = fade in / fade out
 
-    aCurrentEffect[EP_MODE]             = (rand()%2)+1;
+    aCurrentEffect[EP_MODE]             = (rand()%2);
     aCurrentEffect[EP_MSG_NUMBER]++;                            //MsgNumber
 	aCurrentEffect[EP_HUE]              = rand();       //Hue
 	aCurrentEffect[EP_COLOR_RANGE]      = rand()%100;   //ColorRange
@@ -115,17 +115,24 @@ void RandomEffect()
 	if(aCurrentEffect[EP_MODE]==1)
 	{
 	    aCurrentEffect[EP_TA]           = 1+rand()%5;       //Delay
-	    aCurrentEffect[EP_TB]           = aCurrentEffect[EP_TA] + rand()%20
+	    aCurrentEffect[EP_TB]           = aCurrentEffect[EP_TA] + rand()%20;
 	}
 	else
 	{
 	    aCurrentEffect[EP_TA]            = 30+rand()%50;       //Delay
-	    aCurrentEffect[EP_TB]            = 0
+	    aCurrentEffect[EP_TB]            = 0;
 	}
 
     aCurrentEffect[EP_DELAY]=(rand()%30) +2;
 
 	SendDelay=aCurrentEffect[EP_DELAY];
+
+	///////////////////////////////
+	aCurrentEffect[EP_MODE]             = 1;
+	aCurrentEffect[EP_TA]               = 50;
+	aCurrentEffect[EP_TB]               = 100;
+	aCurrentEffect[EP_HUE]              = 0;
+	aCurrentEffect[EP_COLOR_RANGE]      = 50;
 }
 
 void SendEffect()
@@ -339,6 +346,7 @@ void setup()
 }
 int main(void)
 {
+    srand(TCNT0);
     setup();
     RandomEffect();
     sei();
@@ -365,12 +373,15 @@ int main(void)
         }
         else if(State==STATE_MSG_RECEIVED)
         {
-            //for(i=0;i<NBLED;i++)
-            //    LEDs[i].OffSet = Ra
-            //InitEFFECT!
+            for(i=0;i<NBLED;i++)
+                LEDs[i].CyclePosition = rand();
+                            //InitEFFECT!
             State=STATE_WAITING_TO_SEND;
         }
         else if(State==STATE_WAITING_TO_SEND)
+        {
+
+
             if(SendDelay==0)
             {
                 SendEffect();
@@ -397,15 +408,18 @@ int main(void)
                 else if(LEDs[i].CyclePosition < aCurrentEffect[EP_TA])
                     ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, HalfCycleDuration - (LEDs[i].CyclePosition- HalfCycleDuration), HalfCycleDuration );
                 else
-                    MatchColor(&LEDs[i].BaseColor, &LEDs[i].c);
+                    MatchColor(&cBlack, &LEDs[i].c);
             }
 
             LEDs[i].CyclePosition++;
             if(LEDs[i].CyclePosition >= LEDs[i].CycleDuration)
             {
                     LEDs[i].CyclePosition = 0;
-                    LEDs[i].CycleDuration = aCurrentEffect[EP_TA] + aCurrentEffect[EP_TB]
-                    SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + (rand() % aCurrentEffect[EP_COLOR_RANGE]));
+                    LEDs[i].CycleDuration = aCurrentEffect[EP_TA] + aCurrentEffect[EP_TB];
+                    uint8_t v = LEDs[i].CycleDuration / 4;
+                    LEDs[i].CycleDuration += rand() % v;//Adding 25% variance
+                    SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + (rand() % (aCurrentEffect[EP_COLOR_RANGE]+1) ));
+                    //SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + 0));
             }
         }
         TransferToPWM();
