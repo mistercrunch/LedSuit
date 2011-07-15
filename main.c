@@ -17,7 +17,7 @@
 #define STATE_OLD_MSG_RECEIVED  14
 #define STATE_WAITING_TO_SEND   15
 
-#define NB_EFFECT_PARAMS 7
+#define NB_EFFECT_PARAMS 8
 #define EP_MSG_NUMBER           0
 #define EP_HUE                  1
 #define EP_COLOR_RANGE          2
@@ -25,6 +25,7 @@
 #define EP_TB                   4
 #define EP_MODE                 5
 #define EP_DELAY                6
+#define EP_HUE2                 7
 
 #define NB_MODES                2
 #define M_FLASH                 0
@@ -134,15 +135,15 @@ void PWM_SwitchPins()
   if (LEDs[4].c.G > TCNT0) PORTD &= 0b10111111; else PORTD |= 0b01000000;//PD6
   if (LEDs[4].c.B > TCNT0) PORTD &= 0b01111111; else PORTD |= 0b10000000;//PD7
 
-  if (LEDs[4].c.R > TCNT0) PORTD &= 0b11110111; else PORTD |= 0b00001000;//PD3
-  if (LEDs[4].c.G > TCNT0) PORTD &= 0b11101111; else PORTD |= 0b00010000;//PD4
-  if (LEDs[4].c.B > TCNT0) PORTD &= 0b11111011; else PORTD |= 0b00000100;//PD2
+  if (LEDs[5].c.R > TCNT0) PORTD &= 0b11110111; else PORTD |= 0b00001000;//PD3
+  if (LEDs[5].c.G > TCNT0) PORTD &= 0b11101111; else PORTD |= 0b00010000;//PD4
+  if (LEDs[5].c.B > TCNT0) PORTA &= 0b11111011; else PORTA |= 0b00000100;//PA2
 }
 void PWM_AllOff()
 {
-    PORTA &= 0b11110101;
-    PORTC &= 0b00000000;
-    PORTD &= 0b01000000;
+    PORTA |= 0b00001110;
+    PORTC |= 0b10111111;
+    PORTD |= 0b11111111;
 }
 void PWM_Reset()
 {
@@ -184,7 +185,7 @@ SIGNAL(TIMER0_COMPA_vect){
     //Tick();
     //PORTC &= ~(1 << i)
     //Increment to stop at next clock tick
-    OCR0A+=8;
+    OCR0A+=2;
     ResumeClock();
 
 }
@@ -250,16 +251,45 @@ void RandomEffect()
 	    aCurrentEffect[EP_TB]            = 0;
 	}
 */
-    aCurrentEffect[EP_DELAY]=(rand()%30) +2;
+    aCurrentEffect[EP_DELAY]=rand()%50+10;
 	SendDelay=aCurrentEffect[EP_DELAY];
 
 	///////////////////////////////
-	aCurrentEffect[EP_MODE]             = 1;
-	aCurrentEffect[EP_TA]               = 50;
-	aCurrentEffect[EP_TB]               = 100;
-	aCurrentEffect[EP_HUE]              = 0;
-	aCurrentEffect[EP_COLOR_RANGE]      = 50;
+	if (rand()%20 > 10)
+	{
+	    aCurrentEffect[EP_MODE]             = M_FADE;
+	    aCurrentEffect[EP_TA]               = rand()%20;
+        aCurrentEffect[EP_TB]               = rand()%50 + aCurrentEffect[EP_TA];
+	}
+    else
+    {
+        aCurrentEffect[EP_MODE]             = M_FLASH;
+        aCurrentEffect[EP_TA]               = rand()%5;
+        aCurrentEffect[EP_TB]               = rand()%15 + aCurrentEffect[EP_TA];
+    }
 
+
+	aCurrentEffect[EP_HUE]              = aCurrentEffect[EP_HUE] + 100;
+
+    uint8_t r = rand();
+	if (r<85)
+	{
+	    //color range
+	    aCurrentEffect[EP_HUE2]              = 0;
+	    aCurrentEffect[EP_COLOR_RANGE]       = rand()%100;
+	}
+	else if(r < 170)
+	{
+        //bicolor
+	    aCurrentEffect[EP_HUE2]              = aCurrentEffect[EP_HUE] + 127;
+	    aCurrentEffect[EP_COLOR_RANGE]       = 0;
+	}
+    else
+	{
+        //monocolor
+	    aCurrentEffect[EP_HUE2]              = 0;
+	    aCurrentEffect[EP_COLOR_RANGE]       = 0;
+	}
 	aCurrentEffect[EP_MSG_NUMBER]++;
 }
 
@@ -425,7 +455,7 @@ void Msg()
 void setup()
 {
     //Enabling interupts on reading pins PA0 & PB7
-
+    PWM_AllOff();
     UART_AllEars();
 
         //UART_ENABLE_LISTEN();
@@ -447,15 +477,25 @@ int main()
     srand(TCNT0);
     setup();
     RandomEffect();
-    sei();
+
 
     Message=1;
 
     U8 i=0;
 
+    //
+
+
+    //for(i=0;i<50;i++) _delay_ms(55);
+    sei();
+    SetAllRGB(55,55,55);
+    _delay_ms(55);
+
     for(;;)
     {
         //Msg();
+
+
 
         if(UartDelay>0)
             UartDelay--;
@@ -471,8 +511,8 @@ int main()
         }
         else if(State==STATE_MSG_RECEIVED)
         {
-            for(i=0;i<NBLED;i++)
-                LEDs[i].CyclePosition = rand();
+            //for(i=0;i<NBLED;i++)
+                //LEDs[i].CyclePosition = rand();
                             //InitEFFECT!
             State=STATE_WAITING_TO_SEND;
         }
@@ -514,9 +554,12 @@ int main()
             {
                     LEDs[i].CyclePosition = 0;
                     LEDs[i].CycleDuration = aCurrentEffect[EP_TA] + aCurrentEffect[EP_TB];
-                    uint8_t v = LEDs[i].CycleDuration / 4;
-                    LEDs[i].CycleDuration += rand() % v;//Adding 25% variance
+                    //uint8_t v = LEDs[i].CycleDuration / 4;
+                    LEDs[i].CycleDuration += rand() % LEDs[i].CycleDuration ;//Adding 25% variance
                     SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + (rand() % (aCurrentEffect[EP_COLOR_RANGE]+1) ));
+                    if(aCurrentEffect[EP_HUE2] !=0 && (uint8_t)rand() < 127)
+                        SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE2] );
+
                     //SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + 0));
             }
         }

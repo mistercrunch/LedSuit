@@ -22,10 +22,7 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-O3" />
-			<Add option="-O2" />
-			<Add option="-O1" />
-			<Add option="-O" />
+			<Add option="-Os" />
 			<Add option="-Wall" />
 			<Add option="-mmcu=attiny48" />
 			<Add option="-DF_CPU=16000000UL" />
