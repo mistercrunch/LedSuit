@@ -8,7 +8,7 @@
 #define U8 uint8_t
 
 #define NBLED 6
-#define START_TRANS_BYTE 0b10101010
+#define START_TRANS_BYTE 0b10101110
 
 #define STATE_NULL              0
 #define STATE_BUTTON_PUSHED     11
@@ -298,7 +298,7 @@ void SendEffect()
     //This is to indicate that a message is coming
     cli();
     UART_AllOut();
-
+    uint8_t crc = UART_CheckCRC(aCurrentEffect);
 
     //UART_Push0();
     //UART_Push1();
@@ -308,7 +308,7 @@ void SendEffect()
     for(i=0; i<NB_EFFECT_PARAMS;i++)
         UART_SendByte(aCurrentEffect[i]);
 
-    UART_SendByte(UART_CheckCRC(aCurrentEffect));
+    UART_SendByte(crc);
 
 
     UartDelay=((int)aCurrentEffect[EP_DELAY]) * 3;
@@ -338,7 +338,7 @@ void ReceiveEffect(volatile uint8_t *PINX, uint8_t PinNum)
             for( i=0; i<NB_EFFECT_PARAMS;i++)
                 aCurrentEffect[i]=tmpEffect[i];
 
-            State=STATE_MSG_RECEIVED;
+            State=STATE_WAITING_TO_SEND;
             SendDelay=aCurrentEffect[EP_DELAY];
         }
         //else Message=STATE_OLD_MSG_RECEIVED;
@@ -469,27 +469,17 @@ int main()
     WDTCSR&=0b10110111;
     PWM_init();
 
-    srand(TCNT0);
+    //srand(TCNT0);
 
     RandomEffect();
 
-    //Message=1;
     U8 i=0;
-
-    //
-
 
     //for(i=0;i<50;i++) _delay_ms(55);
     sei();
-    SetAllRGB(55,55,55);
-    _delay_ms(55);
 
     for(;;)
     {
-        //Msg();
-
-
-
         if(UartDelay>0)
             UartDelay--;
         else UART_AllEars();
@@ -500,19 +490,10 @@ int main()
             srand(TCNT0);
             RandomEffect();
 
-            State=STATE_MSG_RECEIVED;
-        }
-        else if(State==STATE_MSG_RECEIVED)
-        {
-            //for(i=0;i<NBLED;i++)
-                //LEDs[i].CyclePosition = rand();
-                            //InitEFFECT!
             State=STATE_WAITING_TO_SEND;
         }
         else if(State==STATE_WAITING_TO_SEND)
         {
-
-
             if(SendDelay==0)
             {
                 SendEffect();

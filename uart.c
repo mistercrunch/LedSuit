@@ -3,8 +3,8 @@
 #include <util/crc16.h>
 #define U8 uint8_t
 
-#define HALF_BIT_LENGHT 1000
-#define BIT_LENGHT 2000
+#define HALF_BIT_LENGHT 1500
+#define BIT_LENGHT 3000
 
 #define PB_PINS 0b10000110;
 #define PA_PINS 0b00000001;
