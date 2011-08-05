@@ -434,7 +434,7 @@ void SetRGB(U8 LedNum, U8 _R, U8 _G, U8 _B)
     LEDs[LedNum].c.G = _G;
     LEDs[LedNum].c.B = _B;
 }
-
+/*
 void SetAllRGB(U8 R, U8 G, U8 B)
 {
     U8 i;
@@ -444,7 +444,7 @@ void SetAllRGB(U8 R, U8 G, U8 B)
 void AllBlack()
 {
     SetAllRGB(0,0,0);
-}
+}*/
 /*
 void Msg()
 {

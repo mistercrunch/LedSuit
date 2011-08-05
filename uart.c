@@ -101,11 +101,11 @@ U8 UART_ReadByte(volatile uint8_t *PINX, uint8_t PinNum)
     return msg;
 }
 
-uint8_t UART_CheckCRC(uint8_t MyArray[])
+uint8_t UART_CheckCRC(uint8_t MyArray[] )
 {
         uint8_t crc = 0;
         uint8_t i;
-        for (i = 0; i < sizeof MyArray ; i++)
+        for (i = 0; i < sizeof MyArray / sizeof MyArray[0]; i++)
             crc = _crc_ibutton_update(crc, MyArray[i]);
 
         return crc; // must be 0
