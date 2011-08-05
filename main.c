@@ -93,7 +93,7 @@ Color cBlack;
 uint8_t aCurrentEffect[NB_EFFECT_PARAMS];
 int     UartDelay=0;
 uint8_t SendDelay=0;
-uint8_t Message=STATE_NULL;
+//uint8_t Message=STATE_NULL;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -452,35 +452,28 @@ void Msg()
 //////////////////////////////////////////////////////
 //Core
 //////////////////////////////////////////////////////
-void setup()
+
+int main()
 {
     //Enabling interupts on reading pins PA0 & PB7
     PWM_AllOff();
     UART_AllEars();
 
-        //UART_ENABLE_LISTEN();
+    DDRA    |= 0b00001110;
+    DDRD    |= 0b11111111;
+    DDRC    |= 0b11111111;
 
-
-    DDRA    |=0b00001110;
-    DDRD    |=0b11111111;
-    DDRC    |=0b11111111;
-
-//POWER REDUCTION
+    //POWER REDUCTION
     PRR |=0b10001101;
-//Turning off the watchdog
+    //Turning off the watchdog
     WDTCSR&=0b10110111;
     PWM_init();
 
-}
-int main()
-{
     srand(TCNT0);
-    setup();
+
     RandomEffect();
 
-
-    Message=1;
-
+    //Message=1;
     U8 i=0;
 
     //

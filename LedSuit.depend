@@ -1,30 +1,20 @@
 # depslib dependency file v1.0
-1277685879 source:/home/mistercrunch/Code/Codeblocks/LedSuit/pwm.c
-	"pwm.h"
-	<avr/io.h>
-	<util/delay.h>
-	<avr/interrupt.h>
-	<stdlib.h>
+1312509603 source:/home/mistercrunch/Code/Codeblocks/LedSuit/pwm.c
 
 1277686062 /home/mistercrunch/Code/Codeblocks/LedSuit/pwm.h
 	<avr/io.h>
 	<avr/interrupt.h>
 	<stdlib.h>
 
-1283118101 source:/home/mistercrunch/Code/Codeblocks/LedSuit/main.c
-	<avr/io.h>
-	<avr/io.h>
+1312514929 source:/home/mistercrunch/Code/Codeblocks/LedSuit/main.c
 	<util/delay.h>
-	<util/delay_basic.h>
-	<avr/sleep.h>
-	"pwm.h"
+	<stdlib.h>
 	"uart.h"
-
-1282337391 /home/mistercrunch/Code/Codeblocks/LedSuit/uart.h
 	<avr/interrupt.h>
-	<util/delay.h>
 
-1282494211 source:/home/mistercrunch/Code/Codeblocks/LedSuit/uart.c
+1312514601 /home/mistercrunch/Code/Codeblocks/LedSuit/uart.h
+
+1312514617 source:/home/mistercrunch/Code/Codeblocks/LedSuit/uart.c
 	<avr/interrupt.h>
 	<util/delay.h>
 	<util/crc16.h>

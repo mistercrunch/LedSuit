@@ -1,4 +1,0 @@
-./PushCode.sh
-./SetFuses.sh
-
-
