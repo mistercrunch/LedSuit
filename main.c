@@ -37,6 +37,15 @@
 #define PauseClock() TCCR0A  &= ~0b00000100; // clk/256 0b00000101 for 1024
 #define ResumeClock() TCCR0A |=  0b00000100;
 
+#define BV0     0b00000001
+#define BV1     0b00000010
+#define BV2     0b00000100
+#define BV3     0b00001000
+#define BV4     0b00010000
+#define BV5     0b00100000
+#define BV6     0b01000000
+#define BV7     0b10000000
+
 
 /*
 Mode1
@@ -104,6 +113,42 @@ uint8_t SendDelay=0;
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+void PWM_SwitchPin(uint8_t val, volatile uint8_t * PORTX, uint8_t pincode)//3306
+{
+    if(val > TCNT0)
+        *PORTX &= ~pincode;
+    else
+        *PORTX |= pincode;
+}
+
+void PWM_SwitchPins()
+{
+
+  PWM_SwitchPin(LEDs[0].c.R, &PORTD, BV2);
+  PWM_SwitchPin(LEDs[0].c.G, &PORTD, BV1);
+  PWM_SwitchPin(LEDs[0].c.B, &PORTD, BV0);
+
+  PWM_SwitchPin(LEDs[1].c.R, &PORTA, BV3);
+  PWM_SwitchPin(LEDs[1].c.G, &PORTC, BV5);
+  PWM_SwitchPin(LEDs[1].c.B, &PORTC, BV4);
+
+  PWM_SwitchPin(LEDs[2].c.R, &PORTC, BV3);
+  PWM_SwitchPin(LEDs[2].c.G, &PORTC, BV2);
+  PWM_SwitchPin(LEDs[2].c.B, &PORTC, BV1);
+
+  PWM_SwitchPin(LEDs[3].c.R, &PORTC, BV7);
+  PWM_SwitchPin(LEDs[3].c.G, &PORTA, BV1);
+  PWM_SwitchPin(LEDs[3].c.B, &PORTC, BV0);
+
+  PWM_SwitchPin(LEDs[4].c.R, &PORTD, BV5);
+  PWM_SwitchPin(LEDs[4].c.G, &PORTD, BV6);
+  PWM_SwitchPin(LEDs[4].c.B, &PORTD, BV7);
+
+  PWM_SwitchPin(LEDs[5].c.R, &PORTD, BV3);
+  PWM_SwitchPin(LEDs[5].c.G, &PORTD, BV4);
+  PWM_SwitchPin(LEDs[5].c.B, &PORTA, BV2);
+}
+/*
 void PWM_SwitchPins()
 {
   if (LEDs[0].c.R > TCNT0) PORTD &= 0b11111011; else PORTD |= 0b00000100;//PD2
@@ -129,7 +174,7 @@ void PWM_SwitchPins()
   if (LEDs[5].c.R > TCNT0) PORTD &= 0b11110111; else PORTD |= 0b00001000;//PD3
   if (LEDs[5].c.G > TCNT0) PORTD &= 0b11101111; else PORTD |= 0b00010000;//PD4
   if (LEDs[5].c.B > TCNT0) PORTA &= 0b11111011; else PORTA |= 0b00000100;//PA2
-}
+}*/
 void PWM_AllOff()
 {
     PORTA |= 0b00001110;
