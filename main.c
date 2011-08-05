@@ -105,16 +105,7 @@ uint8_t SendDelay=0;
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 void PWM_SwitchPins()
-{/*
-  uint8_t i;
-  for (i=1; i<4;  i++)  if (PWM_pins[i]  > TCNT0) PORTA &= ~(1 << i); else PORTA |= (1 << i);
-  for (i=0; i<8;  i++)
-  {
-    //if (PWM_pins[i+4]    > TCNT0) PORTB &= ~(1 << i); else PORTB |= (1 << i);
-    if (PWM_pins[i+12]   > TCNT0) PORTC &= ~(1 << i); else PORTC |= (1 << i);
-    if (PWM_pins[i+20]   > TCNT0) PORTD &= ~(1 << i); else PORTD |= (1 << i);
-  }
-  */
+{
   if (LEDs[0].c.R > TCNT0) PORTD &= 0b11111011; else PORTD |= 0b00000100;//PD2
   if (LEDs[0].c.G > TCNT0) PORTD &= 0b11111101; else PORTD |= 0b00000010;//PD1
   if (LEDs[0].c.B > TCNT0) PORTD &= 0b11111110; else PORTD |= 0b00000001;//PD0
@@ -216,7 +207,7 @@ SIGNAL(TIMER0_OVF_vect ){
 
 
 
-
+/*
 uint8_t PercBetween(uint8_t v1, uint8_t v2, uint8_t nom, uint8_t denom)
 {
     v2 += (((int16_t)v1 - (int16_t)v2) * (int16_t)nom) / (uint16_t)denom;
@@ -227,30 +218,19 @@ void ColorBetween(Color *c, Color *c1, Color *c2, uint8_t nom, uint8_t denom)
     (*c).R = PercBetween((*c1).R, (*c2).R, nom, denom);
     (*c).G = PercBetween((*c1).G, (*c2).G, nom, denom);
     (*c).B = PercBetween((*c1).B, (*c2).B, nom, denom);
+}*/
+
+//3734 3608
+void DimLED(LED * theLED, uint8_t nom, uint8_t denom)
+{
+    (*theLED).c.R = ((int16_t)(*theLED).BaseColor.R * nom) / (uint16_t)denom;
+    (*theLED).c.G = ((int16_t)(*theLED).BaseColor.G * nom) / (uint16_t)denom;
+    (*theLED).c.B = ((int16_t)(*theLED).BaseColor.B * nom) / (uint16_t)denom;
 }
 
 void RandomEffect()
 {
-    //Modes
-    //Mode 1 = flash
-    //Mode 2 = fade in / fade out
 
-    //aCurrentEffect[EP_MODE]             = (rand()%2);
-                               //MsgNumber
-	//aCurrentEffect[EP_HUE]              = rand();       //Hue
-	//aCurrentEffect[EP_COLOR_RANGE]      = rand()%100;   //ColorRange
-/*
-	if(aCurrentEffect[EP_MODE]==1)
-	{
-	    aCurrentEffect[EP_TA]           = 1+rand()%5;       //Delay
-	    aCurrentEffect[EP_TB]           = aCurrentEffect[EP_TA] + rand()%20;
-	}
-	else
-	{
-	    aCurrentEffect[EP_TA]            = 30+rand()%50;       //Delay
-	    aCurrentEffect[EP_TB]            = 0;
-	}
-*/
     aCurrentEffect[EP_DELAY]=rand()%50+10;
 	SendDelay=aCurrentEffect[EP_DELAY];
 
@@ -516,9 +496,11 @@ int main()
             {
                 uint8_t HalfCycleDuration = aCurrentEffect[EP_TA] / 2;
                 if(LEDs[i].CyclePosition < HalfCycleDuration)
-                    ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, LEDs[i].CyclePosition, HalfCycleDuration);
+                    //ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, LEDs[i].CyclePosition, HalfCycleDuration);
+                    DimLED(&LEDs[i], LEDs[i].CyclePosition, HalfCycleDuration);
                 else if(LEDs[i].CyclePosition < aCurrentEffect[EP_TA])
-                    ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, HalfCycleDuration - (LEDs[i].CyclePosition- HalfCycleDuration), HalfCycleDuration );
+                    DimLED(&LEDs[i], HalfCycleDuration - (LEDs[i].CyclePosition- HalfCycleDuration), HalfCycleDuration );
+                    //ColorBetween(&LEDs[i].c, &LEDs[i].BaseColor, &cBlack, HalfCycleDuration - (LEDs[i].CyclePosition- HalfCycleDuration), HalfCycleDuration );
                 else
                     MatchColor(&cBlack, &LEDs[i].c);
             }

@@ -13,6 +13,8 @@
 				<Option compiler="avrgcc" />
 				<Compiler>
 					<Add option="-Os" />
+					<Add option="-O2" />
+					<Add option="-O1" />
 					<Add option="-O" />
 					<Add option="-g" />
 				</Compiler>
@@ -40,10 +42,6 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="pwm.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="pwm.h" />
 		<Unit filename="uart.c">
 			<Option compilerVar="CC" />
 		</Unit>
