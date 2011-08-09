@@ -80,18 +80,14 @@ void UART_SendByte(U8 byte)
 U8 UART_ReadByte(volatile uint8_t *PINX, uint8_t PinNum)
 {
     volatile U8 msg=0;
-    //int ii=0;
-
-    //while((*PINX & _BV(PinNum)) == 0 && ii<1000){ii++;_delay_loop_2 (1);}//Waiting for start pulse start
+    while((*PINX & _BV(PinNum)) !=0 ){}
     //i=0;
-    while((*PINX & _BV(PinNum)) !=0){}
-    while((*PINX & _BV(PinNum)) ==0){}//Waiting for start pulse end
-
+    while((*PINX & _BV(PinNum)) ==0 ){}//Waiting for start pulse end
 
     _delay_loop_2 (BIT_LENGHT);
     _delay_loop_2 (HALF_BIT_LENGHT);//Delaying half a bit to sample in the middle of the bit lenght
 
-    U8 i;
+    uint8_t i =0;
     for(i=0; i<8; i++)
     {
         if((*PINX & _BV(PinNum)) == 0)
