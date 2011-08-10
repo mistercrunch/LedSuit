@@ -579,9 +579,8 @@ void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
     else if(UartByte==0)
     {
         if(PinNum==7)
-        {
+
             State=STATE_BUTTON_PUSHED;//Someone hit the button
-        }
     }
     //else Message=STATE_BAD_MSG_RECEIVED;
 
@@ -590,11 +589,15 @@ void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
 
 ISR(PCINT0_vect)
 {
-    if((PINB & _BV(7))== 0)
-         TreatInterupt(&PINB, 7);
-    else if((PINB & _BV(1))==0)
-        TreatInterupt(&PINB, 1);
-    else if((PINB & _BV(2))==0)
+    uint8_t p=0;
+    if((PINB & BV7)== 0)
+         p=7;
+    else if((PINB & BV1)==0)
+        p=1;
+    else if((PINB & BV2)==0)
+        p=2;
+
+    if (p!=0)
         TreatInterupt(&PINB, 2);
 }
 
