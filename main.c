@@ -79,6 +79,8 @@ typedef struct
   U8 R,G,B;
 } Color;
 
+
+
 typedef struct
 {
     Color c;
@@ -98,6 +100,10 @@ typedef struct
 volatile uint8_t    State= STATE_NULL;
 //Effect              CurrentEffect;
 LED                 LEDs[NBLED];
+UartPin             UartPins[4];
+
+
+
 Color cBlack;
 uint8_t aCurrentEffect[NB_EFFECT_PARAMS];
 int     UartDelay=0;
@@ -294,7 +300,7 @@ void RandomEffect()
     NewEffect=1;
 }
 
-void SendEffect()
+void SendEffect(UartPin * thePin)
 {
     //This is to indicate that a message is coming
     cli();
@@ -304,12 +310,12 @@ void SendEffect()
     //UART_Push0();
     //UART_Push1();
 
-    UART_SendByte(START_TRANS_BYTE);
+    UART_SendByte(START_TRANS_BYTE, thePin);
     uint8_t i;
     for(i=0; i<NB_EFFECT_PARAMS;i++)
-        UART_SendByte(aCurrentEffect[i]);
+        UART_SendByte(aCurrentEffect[i], thePin);
 
-    UART_SendByte(crc);
+    UART_SendByte(crc, thePin);
 
 
     UartDelay=((int)aCurrentEffect[EP_DELAY]) * 3;
@@ -317,17 +323,17 @@ void SendEffect()
 
 }
 
-void ReceiveEffect(volatile uint8_t *PINX, uint8_t PinNum)
+void ReceiveEffect(UartPin * thePin)
 {
 
     uint8_t tmpEffect[NB_EFFECT_PARAMS];
     uint8_t i;
     for( i=0; i<NB_EFFECT_PARAMS;i++)
-        tmpEffect[i] = UART_ReadByte(PINX, PinNum);
+        tmpEffect[i] = UART_ReadByte(thePin);
 
     uint8_t errorFlag = 0;
 
-    uint8_t crc = UART_ReadByte(PINX, PinNum);
+    uint8_t crc = UART_ReadByte(thePin);
     if (crc != UART_CheckCRC(tmpEffect)) errorFlag=1;
 
 
@@ -496,6 +502,23 @@ int main()
 {
     //Enabling interupts on reading pins PA0 & PB7
     PWM_AllOff();
+
+    UartPins[0].PORTX   = &PORTB;
+    UartPins[0].PINX    = &PINB;
+    UartPins[0].BV      = BV7;
+
+    UartPins[1].PORTX   = &PORTB;
+    UartPins[1].PINX    = &PINB;
+    UartPins[1].BV      = BV1;
+
+    UartPins[2].PORTX   = &PORTB;
+    UartPins[2].PINX    = &PINB;
+    UartPins[2].BV      = BV2;
+
+    UartPins[3].PORTX   = &PORTA;
+    UartPins[3].PINX    = &PINA;
+    UartPins[3].BV      = BV0;
+
     UART_AllEars();
 
     DDRA    |= 0b00001110;
@@ -544,7 +567,10 @@ int main()
         {
             if(SendDelay==0)
             {
-                SendEffect();
+                SendEffect(&UartPins[0]);
+                SendEffect(&UartPins[1]);
+                SendEffect(&UartPins[2]);
+                SendEffect(&UartPins[3]);
                 State=STATE_NULL;
             }
             else
@@ -564,21 +590,21 @@ int main()
 //Interupts
 //////////////////////////////////////////////////////
 
-void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
+void TreatInterupt(uint8_t PinID)
 {
     cli();
     PWM_AllOff();
 
-    uint8_t UartByte = UART_ReadByte(PINX, PinNum);
+    uint8_t UartByte = UART_ReadByte(&UartPins[PinID]);
 
     if (UartByte==START_TRANS_BYTE)
     {
-        ReceiveEffect(PINX, PinNum);
+        ReceiveEffect(&UartPins[PinID]);
         NewEffect=1;
     }
     else if(UartByte==0)
     {
-        if(PinNum==7)
+        if(PinID==0)//Pin with the BUTTON
 
             State=STATE_BUTTON_PUSHED;//Someone hit the button
     }
@@ -589,23 +615,21 @@ void TreatInterupt(volatile uint8_t *PINX, uint8_t PinNum)
 
 ISR(PCINT0_vect)
 {
-    uint8_t p=0;
     if((PINB & BV7)== 0)
-         p=7;
+        TreatInterupt(0);
     else if((PINB & BV1)==0)
-        p=1;
+        TreatInterupt(1);
     else if((PINB & BV2)==0)
-        p=2;
-
-    if (p!=0)
-        TreatInterupt(&PINB, 2);
+        TreatInterupt(2);
 }
 
 ISR(PCINT3_vect)
 {
     if((PINA & _BV(0))==0)
-        TreatInterupt(&PINA, 0);
+        TreatInterupt(3);
 }
+
+
 
 
 

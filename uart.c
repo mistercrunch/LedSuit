@@ -22,6 +22,12 @@
 //PB7 N1
 //PA0 S3
 //PB2 O6
+typedef struct
+{
+  volatile uint8_t * PORTX;
+  volatile uint8_t * PINX;
+  uint8_t BV;
+} UartPin;
 
 void UART_AllEars()
 {
@@ -49,40 +55,39 @@ void UART_AllOut()
     PORTA   |= PA_PINS;
 }
 
-void UART_Push0()
+void UART_Push0(UartPin * thePin)
 {
-    PORTA &= ~PA_PINS;
-    PORTB &= ~PB_PINS;
+    *thePin->PORTX &= ~(*thePin).BV;
     _delay_loop_2 (BIT_LENGHT);
 }
-void UART_Push1()
+void UART_Push1(UartPin * thePin)
 {
-    PORTA |= PA_PINS;
-    PORTB |= PB_PINS;
+    *thePin->PORTX |= (*thePin).BV;
     _delay_loop_2 (BIT_LENGHT);
 }
-void UART_SendByte(U8 byte)
+void UART_SendByte(U8 byte, UartPin * thePin)
 {
-    UART_Push0();
-    UART_Push1();
+    UART_Push0(thePin);
+    UART_Push1(thePin);
 
     U8 i;
     for(i=0; i<8; i++)
     {
         if (byte >> i & 1)
-            UART_Push0();
+            UART_Push0(thePin);
         else
-            UART_Push1();
+            UART_Push1(thePin);
     }
-    UART_Push1();
-    UART_Push1();
+    UART_Push1(thePin);
+    UART_Push1(thePin);
 }
-U8 UART_ReadByte(volatile uint8_t *PINX, uint8_t PinNum)
+
+uint8_t UART_ReadByte(UartPin * thePin)
 {
     volatile U8 msg=0;
-    while((*PINX & _BV(PinNum)) !=0 ){}
+    while((*thePin->PINX & (*thePin).BV) !=0 ){}
     //i=0;
-    while((*PINX & _BV(PinNum)) ==0 ){}//Waiting for start pulse end
+    while((*thePin->PINX & (*thePin).BV) ==0 ){}//Waiting for start pulse end
 
     _delay_loop_2 (BIT_LENGHT);
     _delay_loop_2 (HALF_BIT_LENGHT);//Delaying half a bit to sample in the middle of the bit lenght
@@ -90,7 +95,7 @@ U8 UART_ReadByte(volatile uint8_t *PINX, uint8_t PinNum)
     uint8_t i =0;
     for(i=0; i<8; i++)
     {
-        if((*PINX & _BV(PinNum)) == 0)
+        if((*thePin->PINX & (*thePin).BV) == 0)
             msg|= 1 << i;
         _delay_loop_2 (BIT_LENGHT);
     }
@@ -103,7 +108,6 @@ uint8_t UART_CheckCRC(uint8_t MyArray[] )
         uint8_t i;
         for (i = 0; i < sizeof MyArray / sizeof MyArray[0]; i++)
             crc = _crc_ibutton_update(crc, MyArray[i]);
-
         return crc; // must be 0
 }
 
