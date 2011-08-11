@@ -22,6 +22,8 @@
 //PB7 N1
 //PA0 S3
 //PB2 O6
+
+
 typedef struct
 {
   volatile uint8_t * PORTX;
@@ -29,28 +31,34 @@ typedef struct
   uint8_t BV;
 } UartPin;
 
+void UART_Init()
+{
+    PCICR   |= 0b00001001;//Init interrupt on A and B
+    PCMSK0  |=  PB_PINS;
+    PCMSK3  |=  PA_PINS;
+}
 void UART_AllEars()
 {
     DDRB    &= ~PB_PINS;
     PORTB   |=  PB_PINS;
-    PCMSK0  |=  PB_PINS;
+    //PCMSK0  |=  PB_PINS;
 
     DDRA    &= ~PA_PINS;
     PORTA   |=  PA_PINS;
-    PCMSK3  |=  PA_PINS;
+    //PCMSK3  |=  PA_PINS;
 
-    PCICR   |= 0b00001001;
+    //PCICR   |= 0b00001001;
 }
 
 void UART_AllOut()
 {
-    PCICR   &= 0b11110110;
+    //PCICR   &= 0b11110110;
 
-    PCMSK0  &= ~PB_PINS;
+    //PCMSK0  &= ~PB_PINS;
     DDRB    |= PB_PINS;
     PORTB   |= PB_PINS;
 
-    PCMSK3  &= ~PA_PINS;
+    //PCMSK3  &= ~PA_PINS;
     DDRA    |= PA_PINS;
     PORTA   |= PA_PINS;
 }

@@ -87,8 +87,6 @@ typedef struct
     Color BaseColor;
     uint8_t CyclePosition;
     uint8_t CycleDuration;
-    //uint8_t OffSet;//Offset is assigned randomly when a new effect is loaded. It makes the different leds not in sync
-    //uint8_t Offset;
 }LED;
 
 
@@ -101,6 +99,7 @@ volatile uint8_t    State= STATE_NULL;
 //Effect              CurrentEffect;
 LED                 LEDs[NBLED];
 UartPin             UartPins[4];
+uint8_t             PinReceived = 255;//Represents the pin where the last effect was received(to avoid sending it back there)
 
 
 
@@ -304,6 +303,7 @@ void SendEffect(UartPin * thePin)
 {
     //This is to indicate that a message is coming
     cli();
+    PWM_AllOff();
     UART_AllOut();
     uint8_t crc = UART_CheckCRC(aCurrentEffect);
 
@@ -323,17 +323,17 @@ void SendEffect(UartPin * thePin)
 
 }
 
-void ReceiveEffect(UartPin * thePin)
+void ReceiveEffect(uint8_t PinId)
 {
 
     uint8_t tmpEffect[NB_EFFECT_PARAMS];
     uint8_t i;
     for( i=0; i<NB_EFFECT_PARAMS;i++)
-        tmpEffect[i] = UART_ReadByte(thePin);
+        tmpEffect[i] = UART_ReadByte(&UartPins[PinId]);
 
     uint8_t errorFlag = 0;
 
-    uint8_t crc = UART_ReadByte(thePin);
+    uint8_t crc = UART_ReadByte(&UartPins[PinId]);
     if (crc != UART_CheckCRC(tmpEffect)) errorFlag=1;
 
 
@@ -347,6 +347,7 @@ void ReceiveEffect(UartPin * thePin)
 
             State=STATE_WAITING_TO_SEND;
             SendDelay=aCurrentEffect[EP_DELAY];
+            PinReceived = PinId;
         }
         //else Message=STATE_OLD_MSG_RECEIVED;
     }
@@ -416,7 +417,7 @@ void SetRGB(U8 LedNum, U8 _R, U8 _G, U8 _B)
     LEDs[LedNum].c.G = _G;
     LEDs[LedNum].c.B = _B;
 }
-/*
+
 void SetAllRGB(U8 R, U8 G, U8 B)
 {
     U8 i;
@@ -426,7 +427,7 @@ void SetAllRGB(U8 R, U8 G, U8 B)
 void AllBlack()
 {
     SetAllRGB(0,0,0);
-}*/
+}
 /*
 void Msg()
 {
@@ -502,7 +503,7 @@ int main()
 {
     //Enabling interupts on reading pins PA0 & PB7
     PWM_AllOff();
-
+    UART_Init();
     UartPins[0].PORTX   = &PORTB;
     UartPins[0].PINX    = &PINB;
     UartPins[0].BV      = BV7;
@@ -567,10 +568,14 @@ int main()
         {
             if(SendDelay==0)
             {
-                SendEffect(&UartPins[0]);
-                SendEffect(&UartPins[1]);
-                SendEffect(&UartPins[2]);
-                SendEffect(&UartPins[3]);
+                AllBlack();
+                for(i=0;i<4;i++)
+                {
+                    if(i!= PinReceived)
+                        SendEffect(&UartPins[i]);
+                }
+
+                PinReceived = 255;
                 State=STATE_NULL;
             }
             else
@@ -599,7 +604,7 @@ void TreatInterupt(uint8_t PinID)
 
     if (UartByte==START_TRANS_BYTE)
     {
-        ReceiveEffect(&UartPins[PinID]);
+        ReceiveEffect(PinID);
         NewEffect=1;
     }
     else if(UartByte==0)

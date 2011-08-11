@@ -11,6 +11,7 @@ typedef struct
 void        UART_SendByte(U8 byte, UartPin * thePin);
 void        UART_AllEars();
 void        UART_AllOut();
+void        UART_Init();
 //void        UART_Push0(UartPin * thePin);
 //void        UART_Push1(UartPin * thePin);
 uint8_t     UART_ReadByte(UartPin * thePin);
