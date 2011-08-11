@@ -5,6 +5,7 @@
 
 #define HALF_BIT_LENGHT 1500
 #define BIT_LENGHT 3000
+#define ONE_AND_HALF_BIT_LENGHT BIT_LENGHT + HALF_BIT_LENGHT
 
 #define PB_PINS 0b10000110;
 #define PA_PINS 0b00000001;
@@ -41,24 +42,18 @@ void UART_AllEars()
 {
     DDRB    &= ~PB_PINS;
     PORTB   |=  PB_PINS;
-    //PCMSK0  |=  PB_PINS;
 
     DDRA    &= ~PA_PINS;
     PORTA   |=  PA_PINS;
-    //PCMSK3  |=  PA_PINS;
 
-    //PCICR   |= 0b00001001;
 }
 
 void UART_AllOut()
 {
-    //PCICR   &= 0b11110110;
 
-    //PCMSK0  &= ~PB_PINS;
     DDRB    |= PB_PINS;
     PORTB   |= PB_PINS;
 
-    //PCMSK3  &= ~PA_PINS;
     DDRA    |= PA_PINS;
     PORTA   |= PA_PINS;
 }
@@ -89,16 +84,40 @@ void UART_SendByte(U8 byte, UartPin * thePin)
     UART_Push1(thePin);
     UART_Push1(thePin);
 }
+uint8_t UART_CheckPin(UartPin * thePin){
+    if ((*thePin->PINX & (*thePin).BV) !=0)
+        return 1;
+    else
+        return 0;
+}
+
+
+void WaitWhileStatus(UartPin * thePin, uint8_t status){
+    uint16_t i =0;
+    uint16_t timeout = BIT_LENGHT*10;
+    uint8_t keepLooping = 1;
+
+    while (keepLooping==1)
+    {
+        if(UART_CheckPin(thePin)!=status)
+            keepLooping=0;
+        _delay_loop_2 (1);
+        i++;
+        if(i>timeout)keepLooping=0;
+    }
+}
+
+
 
 uint8_t UART_ReadByte(UartPin * thePin)
 {
     volatile U8 msg=0;
-    while((*thePin->PINX & (*thePin).BV) !=0 ){}
-    //i=0;
-    while((*thePin->PINX & (*thePin).BV) ==0 ){}//Waiting for start pulse end
 
-    _delay_loop_2 (BIT_LENGHT);
-    _delay_loop_2 (HALF_BIT_LENGHT);//Delaying half a bit to sample in the middle of the bit lenght
+
+    WaitWhileStatus(thePin, 1);//Waiting for start bit to start, most liquely skipped
+    WaitWhileStatus(thePin, 0);
+
+    _delay_loop_2 (ONE_AND_HALF_BIT_LENGHT);
 
     uint8_t i =0;
     for(i=0; i<8; i++)
