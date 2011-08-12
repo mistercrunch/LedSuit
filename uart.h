@@ -4,6 +4,7 @@ typedef struct
 {
   volatile uint8_t * PORTX;
   volatile uint8_t * PINX;
+  volatile uint8_t * DDRX;
   uint8_t BV;
 } UartPin;
 
@@ -16,3 +17,6 @@ void        UART_Init();
 //void        UART_Push1(UartPin * thePin);
 uint8_t     UART_ReadByte(UartPin * thePin);
 uint8_t     UART_CheckCRC(uint8_t MyArray[]);
+
+void UART_PinListen(UartPin * thePin);
+void UART_PinTalk(UartPin * thePin);

@@ -31,6 +31,8 @@
 #define M_FLASH                 0
 #define M_FADE                  1
 
+#define MAX_UART_RETRIES        5
+
 #include <avr/interrupt.h>
 
 #define PWM_FREQUENCY   0x04
@@ -99,7 +101,7 @@ volatile uint8_t    State= STATE_NULL;
 //Effect              CurrentEffect;
 LED                 LEDs[NBLED];
 UartPin             UartPins[4];
-uint8_t             PinReceived = 255;//Represents the pin where the last effect was received(to avoid sending it back there)
+UartPin*            UartPinReceived = 0;//Represents the pin where the last effect was received(to avoid sending it back there)
 
 
 
@@ -295,7 +297,7 @@ void RandomEffect()
 	    aCurrentEffect[EP_HUE2]              = 0;
 	    aCurrentEffect[EP_COLOR_RANGE]       = 0;
 	}
-	aCurrentEffect[EP_MSG_NUMBER]++;
+	aCurrentEffect[EP_MSG_NUMBER] = rand();
     NewEffect=1;
 }
 
@@ -304,50 +306,72 @@ void SendEffect(UartPin * thePin)
     //This is to indicate that a message is coming
     cli();
     PWM_AllOff();
-    UART_AllOut();
+
     uint8_t crc = UART_CheckCRC(aCurrentEffect);
 
-    //UART_Push0();
-    //UART_Push1();
+    uint8_t remote_crc=0;
 
     UART_SendByte(START_TRANS_BYTE, thePin);
-    uint8_t i;
-    for(i=0; i<NB_EFFECT_PARAMS;i++)
-        UART_SendByte(aCurrentEffect[i], thePin);
 
-    UART_SendByte(crc, thePin);
+    if (UART_ReadByte(thePin) == START_TRANS_BYTE)
+    {
+        //Got handshake
+        uint8_t nb_try=0;
+        while(remote_crc != crc && nb_try < MAX_UART_RETRIES )
+        {
+            uint8_t i;
+            UART_SendByte(crc, thePin);
+            UART_SendByte(crc, thePin);
+            for(i=0; i<NB_EFFECT_PARAMS;i++)
+                UART_SendByte(aCurrentEffect[i], thePin);
 
+            remote_crc = UART_ReadByte(thePin);
+            nb_try++;
+            UartDelay=((int)aCurrentEffect[EP_DELAY]) * 10;
+        }
+    }
 
-    UartDelay=((int)aCurrentEffect[EP_DELAY]) * 10;
     sei();
 
 }
 
-void ReceiveEffect(uint8_t PinId)
+void ReceiveEffect(UartPin * thePin)
 {
 
+    UART_SendByte(START_TRANS_BYTE, thePin);        //Sending back the start byte for the ACK
+    uint8_t crc_remote1, crc_remote2, crc_local;
+
+    uint8_t nbTries =0;
     uint8_t tmpEffect[NB_EFFECT_PARAMS];
+
+    uint8_t flagSuccess = 0;
     uint8_t i;
-    for( i=0; i<NB_EFFECT_PARAMS;i++)
-        tmpEffect[i] = UART_ReadByte(&UartPins[PinId]);
 
-    uint8_t errorFlag = 0;
-
-    uint8_t crc = UART_ReadByte(&UartPins[PinId]);
-    if (crc != UART_CheckCRC(tmpEffect)) errorFlag=1;
-
-
-    if(errorFlag==0)
+    while(flagSuccess==0 && nbTries < MAX_UART_RETRIES)
     {
-        if(aCurrentEffect[0]!=tmpEffect[0])
+        crc_remote1 = UART_ReadByte(thePin);
+        crc_remote2 = UART_ReadByte(thePin);
+
+        for( i=0; i<NB_EFFECT_PARAMS;i++)
+            tmpEffect[i] = UART_ReadByte(thePin);
+
+        crc_local = UART_CheckCRC(tmpEffect);
+
+        if(crc_local == crc_remote1 && crc_remote1 == crc_remote2)flagSuccess=1;
+        nbTries++;
+    }
+
+    if(flagSuccess==1)
+    {
+        UART_SendByte(crc_local, thePin);
+        if(aCurrentEffect[EP_MSG_NUMBER]!=tmpEffect[EP_MSG_NUMBER])
         {
-            uint8_t i;
             for( i=0; i<NB_EFFECT_PARAMS;i++)
                 aCurrentEffect[i]=tmpEffect[i];
 
             State=STATE_WAITING_TO_SEND;
             SendDelay=aCurrentEffect[EP_DELAY];
-            PinReceived = PinId;
+            UartPinReceived = thePin;
         }
         //else Message=STATE_OLD_MSG_RECEIVED;
     }
@@ -499,26 +523,26 @@ void Animate(LED * L){
                 //SetHue(&LEDs[i].BaseColor, aCurrentEffect[EP_HUE] + 0));
         }
 }
+
 int main()
 {
     //Enabling interupts on reading pins PA0 & PB7
     PWM_AllOff();
     UART_Init();
-
-    UartPins[0].PORTX   = &PORTB;
-    UartPins[0].PINX    = &PINB;
+    uint8_t i;
+    for(i=0;i<3;i++)
+    {
+        UartPins[0].PORTX   = &PORTB;
+        UartPins[0].PINX    = &PINB;
+        UartPins[0].DDRX    = &DDRB;
+    }
     UartPins[0].BV      = BV7;
-
-    UartPins[1].PORTX   = &PORTB;
-    UartPins[1].PINX    = &PINB;
     UartPins[1].BV      = BV1;
-
-    UartPins[2].PORTX   = &PORTB;
-    UartPins[2].PINX    = &PINB;
     UartPins[2].BV      = BV2;
 
     UartPins[3].PORTX   = &PORTA;
     UartPins[3].PINX    = &PINA;
+    UartPins[3].DDRX    = &DDRA;
     UartPins[3].BV      = BV0;
 
     UART_AllEars();
@@ -532,15 +556,10 @@ int main()
     //Turning off the watchdog
     WDTCSR&=0b10110111;
     PWM_init();
-    srand(129);
-
-    //srand(TCNT0);
+    //srand(129);
 
     RandomEffect();
 
-    U8 i=0;
-
-    //for(i=0;i<50;i++) _delay_ms(55);
     sei();
 
     for(;;)
@@ -573,11 +592,11 @@ int main()
                 AllBlack();
                 for(i=0;i<4;i++)
                 {
-                    if(i!= PinReceived)
+                    if(&UartPins[i]== UartPinReceived)
                         SendEffect(&UartPins[i]);
                 }
 
-                PinReceived = 255;
+                UartPinReceived = 0;
                 State=STATE_NULL;
             }
             else
@@ -606,13 +625,12 @@ void TreatInterupt(uint8_t PinID)
 
     if (UartByte==START_TRANS_BYTE)
     {
-        ReceiveEffect(PinID);
+        ReceiveEffect(&UartPins[PinID]);
         NewEffect=1;
     }
     else if(UartByte==0)
     {
         if(PinID==0)//Pin with the BUTTON
-
             State=STATE_BUTTON_PUSHED;//Someone hit the button
     }
     //else Message=STATE_BAD_MSG_RECEIVED;

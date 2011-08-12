@@ -24,11 +24,13 @@
 //PA0 S3
 //PB2 O6
 
+//UartPin             UartPins[4];
 
 typedef struct
 {
   volatile uint8_t * PORTX;
   volatile uint8_t * PINX;
+  volatile uint8_t * DDRX;
   uint8_t BV;
 } UartPin;
 
@@ -45,17 +47,27 @@ void UART_AllEars()
 
     DDRA    &= ~PA_PINS;
     PORTA   |=  PA_PINS;
-
 }
 
 void UART_AllOut()
 {
-
     DDRB    |= PB_PINS;
     PORTB   |= PB_PINS;
 
     DDRA    |= PA_PINS;
     PORTA   |= PA_PINS;
+}
+
+void UART_PinListen(UartPin * thePin)
+{
+    *thePin->DDRX   &= ~(*thePin).BV;
+    *thePin->PORTX  |= (*thePin).BV;
+}
+
+void UART_PinTalk(UartPin * thePin)
+{
+    *thePin->DDRX   |= (*thePin).BV;
+    *thePin->PORTX  |= (*thePin).BV;
 }
 
 void UART_Push0(UartPin * thePin)
@@ -68,12 +80,21 @@ void UART_Push1(UartPin * thePin)
     *thePin->PORTX |= (*thePin).BV;
     _delay_loop_2 (BIT_LENGHT);
 }
+
+
+
 void UART_SendByte(U8 byte, UartPin * thePin)
 {
+    U8 i;
+    UART_PinTalk(thePin);   //Flipping the Pin to write, allowing to call this function at any time without explicitly flipping the pine
+
+    UART_Push1(thePin);     //Line is not active at 1, this introduces a delay allowing flipping the line direction.
+    UART_Push1(thePin);
+
+    //Two line bellow represent the start bits 0 is up, 1 is down
     UART_Push0(thePin);
     UART_Push1(thePin);
 
-    U8 i;
     for(i=0; i<8; i++)
     {
         if (byte >> i & 1)
@@ -82,7 +103,7 @@ void UART_SendByte(U8 byte, UartPin * thePin)
             UART_Push1(thePin);
     }
     UART_Push1(thePin);
-    UART_Push1(thePin);
+
 }
 uint8_t UART_CheckPin(UartPin * thePin){
     if ((*thePin->PINX & (*thePin).BV) !=0)
@@ -111,11 +132,12 @@ void WaitWhileStatus(UartPin * thePin, uint8_t status){
 
 uint8_t UART_ReadByte(UartPin * thePin)
 {
+    UART_PinListen(thePin); //Flipping the Pin to listen, allowing to call this function at any time without explicitly flipping the pine
     volatile U8 msg=0;
 
 
-    WaitWhileStatus(thePin, 1);//Waiting for start bit to start, most liquely skipped
-    WaitWhileStatus(thePin, 0);
+    WaitWhileStatus(thePin, 1);//Waiting for start bit to start, most liquely skipped if line down
+    WaitWhileStatus(thePin, 0);//Waiting for the end of the start bit
 
     _delay_loop_2 (ONE_AND_HALF_BIT_LENGHT);
 
