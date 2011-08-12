@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="13893" topLine="576" />
+	<File name="main.c" open="1" top="1" tabpos="1">
+		<Cursor position="13022" topLine="530" />
 	</File>
-	<File name="uart.c" open="1" top="1" tabpos="2">
-		<Cursor position="2042" topLine="73" />
+	<File name="uart.c" open="1" top="0" tabpos="2">
+		<Cursor position="1473" topLine="39" />
 	</File>
 	<File name="uart.h" open="1" top="0" tabpos="3">
-		<Cursor position="230" topLine="0" />
+		<Cursor position="323" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

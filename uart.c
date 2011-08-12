@@ -75,6 +75,7 @@ void UART_Push0(UartPin * thePin)
     *thePin->PORTX &= ~(*thePin).BV;
     _delay_loop_2 (BIT_LENGHT);
 }
+
 void UART_Push1(UartPin * thePin)
 {
     *thePin->PORTX |= (*thePin).BV;

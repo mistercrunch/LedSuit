@@ -356,6 +356,7 @@ void ReceiveEffect(UartPin * thePin)
             tmpEffect[i] = UART_ReadByte(thePin);
 
         crc_local = UART_CheckCRC(tmpEffect);
+        UART_SendByte(crc_local, thePin);
 
         if(crc_local == crc_remote1 && crc_remote1 == crc_remote2)flagSuccess=1;
         nbTries++;
@@ -363,7 +364,7 @@ void ReceiveEffect(UartPin * thePin)
 
     if(flagSuccess==1)
     {
-        UART_SendByte(crc_local, thePin);
+
         if(aCurrentEffect[EP_MSG_NUMBER]!=tmpEffect[EP_MSG_NUMBER])
         {
             for( i=0; i<NB_EFFECT_PARAMS;i++)
@@ -452,34 +453,23 @@ void AllBlack()
 {
     SetAllRGB(0,0,0);
 }
-/*
+
+//Message is used for debugging
+volatile uint8_t Message;
 void Msg()
 {
-    if(Message!=STATE_NULL)
+    if(Message!=0)
     {
-        if (Message==STATE_BAD_MSG_RECEIVED)
-        {
+        uint8_t i;
+        for (i=0;i<Message;i++){
             SetAllRGB(255,0,0);
-        }
-        else if (Message==STATE_OLD_MSG_RECEIVED)
-        {
-            SetAllRGB(0,0,255);
-        }
-        else if (Message==STATE_BUTTON_PUSHED)
-        {
-            SetAllRGB(0,255,0);
-        }
-        else if(Message<6)
-        {
+            _delay_ms(500);
             SetAllRGB(0,0,0);
-            SetRGB(State,0,255,0);
+            _delay_ms(500);
         }
-
-        //TransferToPWM();
-        _delay_ms(500);
-        Message=STATE_NULL;
+        Message=0;
     }
-}*/
+}
 
 //////////////////////////////////////////////////////
 //Core
@@ -560,10 +550,15 @@ int main()
 
     RandomEffect();
 
+
+    //To check
+    //Message = UART_CheckCRC(aCurrentEffect);
+
     sei();
 
     for(;;)
     {
+        Msg();
         if(UartDelay>0)
             UartDelay--;
         else
@@ -656,5 +651,16 @@ ISR(PCINT3_vect)
 
 
 
+/*
 
+
+1_________     _____________________________________________
+          |   |
+0         |---|
+
+                    0****1****2****3****4****5****6****7****
+                    |______________________________________|
+                                    BYTE
+
+*/
 
