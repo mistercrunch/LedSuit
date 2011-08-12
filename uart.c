@@ -94,7 +94,7 @@ uint8_t UART_CheckPin(UartPin * thePin){
 
 void WaitWhileStatus(UartPin * thePin, uint8_t status){
     uint16_t i =0;
-    uint16_t timeout = BIT_LENGHT*10;
+    uint16_t timeout = 65500;
     uint8_t keepLooping = 1;
 
     while (keepLooping==1)

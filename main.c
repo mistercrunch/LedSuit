@@ -105,9 +105,9 @@ uint8_t             PinReceived = 255;//Represents the pin where the last effect
 
 Color cBlack;
 uint8_t aCurrentEffect[NB_EFFECT_PARAMS];
-int     UartDelay=0;
-uint8_t SendDelay=0;
-uint8_t    NewEffect=0;
+int         UartDelay=0;
+uint8_t     SendDelay=0;
+uint8_t     NewEffect=0;
 //uint8_t Message=STATE_NULL;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ void DimLED(LED * theLED, uint8_t nom, uint8_t denom)
 void RandomEffect()
 {
 
-    aCurrentEffect[EP_DELAY]=rand()%50+10;
+    aCurrentEffect[EP_DELAY]=rand()%25+5;
 	SendDelay=aCurrentEffect[EP_DELAY];
 
 	///////////////////////////////
@@ -318,7 +318,7 @@ void SendEffect(UartPin * thePin)
     UART_SendByte(crc, thePin);
 
 
-    UartDelay=((int)aCurrentEffect[EP_DELAY]) * 3;
+    UartDelay=((int)aCurrentEffect[EP_DELAY]) * 10;
     sei();
 
 }
@@ -504,6 +504,7 @@ int main()
     //Enabling interupts on reading pins PA0 & PB7
     PWM_AllOff();
     UART_Init();
+
     UartPins[0].PORTX   = &PORTB;
     UartPins[0].PINX    = &PINB;
     UartPins[0].BV      = BV7;
@@ -531,6 +532,7 @@ int main()
     //Turning off the watchdog
     WDTCSR&=0b10110111;
     PWM_init();
+    srand(129);
 
     //srand(TCNT0);
 
