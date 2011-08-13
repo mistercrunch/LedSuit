@@ -463,9 +463,9 @@ void Msg()
         uint8_t i;
         for (i=0;i<Message;i++){
             SetAllRGB(255,0,0);
-            _delay_ms(500);
+            _delay_ms(20);
             SetAllRGB(0,0,0);
-            _delay_ms(500);
+            _delay_ms(20);
         }
         Message=0;
     }
@@ -617,10 +617,9 @@ void TreatInterupt(uint8_t PinID)
     PWM_AllOff();
 
     uint8_t UartByte = UART_ReadByte(&UartPins[PinID]);
-    Message =5;
+
     if (UartByte==START_TRANS_BYTE)
     {
-
         ReceiveEffect(&UartPins[PinID]);
         NewEffect=1;
     }
