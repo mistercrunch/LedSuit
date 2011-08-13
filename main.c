@@ -522,9 +522,9 @@ int main()
     uint8_t i;
     for(i=0;i<3;i++)
     {
-        UartPins[0].PORTX   = &PORTB;
-        UartPins[0].PINX    = &PINB;
-        UartPins[0].DDRX    = &DDRB;
+        UartPins[i].PORTX   = &PORTB;
+        UartPins[i].PINX    = &PINB;
+        UartPins[i].DDRX    = &DDRB;
     }
     UartPins[0].BV      = BV7;
     UartPins[1].BV      = BV1;
@@ -587,7 +587,7 @@ int main()
                 AllBlack();
                 for(i=0;i<4;i++)
                 {
-                    if(&UartPins[i]== UartPinReceived)
+                    if(&UartPins[i]!= UartPinReceived)
                         SendEffect(&UartPins[i]);
                 }
 
@@ -617,9 +617,10 @@ void TreatInterupt(uint8_t PinID)
     PWM_AllOff();
 
     uint8_t UartByte = UART_ReadByte(&UartPins[PinID]);
-
+    Message =5;
     if (UartByte==START_TRANS_BYTE)
     {
+
         ReceiveEffect(&UartPins[PinID]);
         NewEffect=1;
     }
