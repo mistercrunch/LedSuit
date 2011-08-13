@@ -17,6 +17,7 @@ void        UART_Init();
 //void        UART_Push1(UartPin * thePin);
 uint8_t     UART_ReadByte(UartPin * thePin);
 uint8_t     UART_CheckCRC(uint8_t MyArray[]);
+uint8_t UART_CheckPin(UartPin * thePin);
 
 void UART_PinListen(UartPin * thePin);
 void UART_PinTalk(UartPin * thePin);

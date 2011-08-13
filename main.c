@@ -622,10 +622,25 @@ void TreatInterupt(uint8_t PinID)
         ReceiveEffect(&UartPins[PinID]);
         NewEffect=1;
     }
-    else if(UartByte==0)
+    else if(UartByte==255)
     {
         if(PinID==0)//Pin with the BUTTON
-            State=STATE_BUTTON_PUSHED;//Someone hit the button
+        {
+            SetAllRGB(0,0,255);
+            PWM_SwitchPins();
+            uint16_t i=0;
+            while(UART_CheckPin(&UartPins[PinID])==0){
+                i++;
+                _delay_ms(5);
+                if(i>50)
+                {
+                    SetAllRGB(255,0,0);
+                    PWM_SwitchPins();
+                }
+            }
+            if(i>50)
+                State=STATE_BUTTON_PUSHED;//Someone hit the button
+        }
     }
     //else Message=STATE_BAD_MSG_RECEIVED;
 
