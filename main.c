@@ -248,6 +248,7 @@ void ColorBetween(Color *c, Color *c1, Color *c2, uint8_t nom, uint8_t denom)
 }*/
 
 //3734 3608
+volatile uint8_t Message;
 void DimLED(LED * theLED, uint8_t nom, uint8_t denom)
 {
     (*theLED).c.R = ((int16_t)(*theLED).BaseColor.R * nom) / (uint16_t)denom;
@@ -258,7 +259,7 @@ void DimLED(LED * theLED, uint8_t nom, uint8_t denom)
 void RandomEffect()
 {
 
-    aCurrentEffect[EP_DELAY]=rand()%25+5;
+    aCurrentEffect[EP_DELAY]=rand()%20+5;
 	SendDelay=aCurrentEffect[EP_DELAY];
 
 	///////////////////////////////
@@ -327,8 +328,9 @@ void SendEffect(UartPin * thePin)
 
             remote_crc = UART_ReadByte(thePin);
             nb_try++;
-            UartDelay=((int)aCurrentEffect[EP_DELAY]) * 10;
+            UartDelay=((int)aCurrentEffect[EP_DELAY]) * 5;
         }
+        if (nb_try >1) Message=nb_try;
     }
 
     sei();
@@ -361,7 +363,7 @@ void ReceiveEffect(UartPin * thePin)
         if(crc_local == crc_remote1 && crc_remote1 == crc_remote2)flagSuccess=1;
         nbTries++;
     }
-
+    if(nbTries>1)Message=nbTries;
     if(flagSuccess==1)
     {
 
@@ -374,9 +376,7 @@ void ReceiveEffect(UartPin * thePin)
             SendDelay=aCurrentEffect[EP_DELAY];
             UartPinReceived = thePin;
         }
-        //else Message=STATE_OLD_MSG_RECEIVED;
     }
-    //else Message=STATE_BAD_MSG_RECEIVED;
 }
 
 void SetHue(Color *_c, uint8_t _Hue)
@@ -454,8 +454,7 @@ void AllBlack()
     SetAllRGB(0,0,0);
 }
 
-//Message is used for debugging
-volatile uint8_t Message;
+
 void Msg()
 {
     if(Message!=0)

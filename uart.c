@@ -3,8 +3,8 @@
 #include <util/crc16.h>
 #define U8 uint8_t
 
-#define HALF_BIT_LENGHT 1500
-#define BIT_LENGHT 3000
+#define HALF_BIT_LENGHT 200
+#define BIT_LENGHT HALF_BIT_LENGHT*2
 #define ONE_AND_HALF_BIT_LENGHT BIT_LENGHT + HALF_BIT_LENGHT
 
 #define PB_PINS 0b10000110;
@@ -113,23 +113,20 @@ uint8_t UART_CheckPin(UartPin * thePin){
         return 0;
 }
 
-
 void WaitWhileStatus(UartPin * thePin, uint8_t status){
     uint16_t i =0;
-    uint16_t timeout = 65500;
+    //uint16_t timeout = ;
     uint8_t keepLooping = 1;
 
     while (keepLooping==1)
     {
         if(UART_CheckPin(thePin)!=status)
             keepLooping=0;
-        _delay_loop_2 (1);
+        _delay_loop_2 (2);
         i++;
-        if(i>timeout)keepLooping=0;
+        if(i>65500)keepLooping=0;
     }
 }
-
-
 
 uint8_t UART_ReadByte(UartPin * thePin)
 {
