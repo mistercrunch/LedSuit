@@ -308,9 +308,9 @@ void SendEffect(UartPin * thePin)
     cli();
     PWM_AllOff();
 
-    uint8_t crc = UART_CheckCRC(aCurrentEffect);
+    uint8_t isOk=0;
 
-    uint8_t remote_crc=0;
+    //uint8_t remote_crc=0;
 
     UART_SendByte(START_TRANS_BYTE, thePin);
 
@@ -318,15 +318,26 @@ void SendEffect(UartPin * thePin)
     {
         //Got handshake
         uint8_t nb_try=0;
-        while(remote_crc != crc && nb_try < MAX_UART_RETRIES )
+        while(isOk!=255 && nb_try < MAX_UART_RETRIES )
         {
             uint8_t i;
-            UART_SendByte(crc, thePin);
-            UART_SendByte(crc, thePin);
+            //UART_SendByte(crc, thePin);
+            //UART_SendByte(crc, thePin);
             for(i=0; i<NB_EFFECT_PARAMS;i++)
                 UART_SendByte(aCurrentEffect[i], thePin);
 
-            remote_crc = UART_ReadByte(thePin);
+            for(i=0; i<NB_EFFECT_PARAMS;i++)
+                UART_SendByte(~aCurrentEffect[i], thePin);
+/*
+
+            for(i=0; i<NB_EFFECT_PARAMS;i++)
+            {
+                uint8_t v = ~aCurrentEffect[i];
+                UART_SendByte(v, thePin);
+            }
+*/
+
+            isOk = UART_ReadByte(thePin);
             nb_try++;
             UartDelay=((int)aCurrentEffect[EP_DELAY]) * 5;
         }
@@ -341,36 +352,53 @@ void ReceiveEffect(UartPin * thePin)
 {
 
     UART_SendByte(START_TRANS_BYTE, thePin);        //Sending back the start byte for the ACK
-    uint8_t crc_remote1, crc_remote2, crc_local;
+    //uint8_t crc_remote1, crc_remote2, crc_local;
 
     uint8_t nbTries =0;
-    uint8_t tmpEffect[NB_EFFECT_PARAMS];
+    volatile uint8_t tmpEffect1[NB_EFFECT_PARAMS];
+    volatile uint8_t tmpEffect2[NB_EFFECT_PARAMS];
 
     uint8_t flagSuccess = 0;
     uint8_t i;
-
+    uint8_t flagError ;
     while(flagSuccess==0 && nbTries < MAX_UART_RETRIES)
     {
-        crc_remote1 = UART_ReadByte(thePin);
-        crc_remote2 = UART_ReadByte(thePin);
-
+        //crc_remote1 = UART_ReadByte(thePin);
+        //crc_remote2 = UART_ReadByte(thePin);
+        flagError =0;
         for( i=0; i<NB_EFFECT_PARAMS;i++)
-            tmpEffect[i] = UART_ReadByte(thePin);
+            tmpEffect1[i] = UART_ReadByte(thePin);
+        for( i=0; i<NB_EFFECT_PARAMS;i++)
+            tmpEffect2[i] = UART_ReadByte(thePin);
+        for( i=0; i<NB_EFFECT_PARAMS;i++)
+        {
+            uint8_t v1,v2;
+            v1=tmpEffect1[i];
+            v2=~tmpEffect2[i];
+            if(v1 != v2)
+                flagError++;
+        }
 
-        crc_local = UART_CheckCRC(tmpEffect);
-        UART_SendByte(crc_local, thePin);
+        if (flagError==0){
+            flagSuccess=1;
+            UART_SendByte(255, thePin);
+        }
+        else
+        {
+            UART_SendByte(0, thePin);
+        }
 
-        if(crc_local == crc_remote1 && crc_remote1 == crc_remote2)flagSuccess=1;
+        //if(crc_local == crc_remote1 && crc_remote1 == crc_remote2)flagSuccess=1;
         nbTries++;
     }
-    if(nbTries>1)Message=nbTries;
+    if(flagError>1)Message=flagError;
     if(flagSuccess==1)
     {
 
-        if(aCurrentEffect[EP_MSG_NUMBER]!=tmpEffect[EP_MSG_NUMBER])
+        if(aCurrentEffect[EP_MSG_NUMBER]!=tmpEffect1[EP_MSG_NUMBER])
         {
             for( i=0; i<NB_EFFECT_PARAMS;i++)
-                aCurrentEffect[i]=tmpEffect[i];
+                aCurrentEffect[i]=tmpEffect1[i];
 
             State=STATE_WAITING_TO_SEND;
             SendDelay=aCurrentEffect[EP_DELAY];
@@ -626,7 +654,7 @@ void TreatInterupt(uint8_t PinID)
     {
         if(PinID==0)//Pin with the BUTTON
         {
-            SetAllRGB(0,0,255);
+            SetAllRGB(255,255,255);
             PWM_SwitchPins();
             uint16_t i=0;
             while(UART_CheckPin(&UartPins[PinID])==0){

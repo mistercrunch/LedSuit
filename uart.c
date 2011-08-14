@@ -148,7 +148,7 @@ uint8_t UART_ReadByte(UartPin * thePin)
     }
     return msg;
 }
-
+/*
 uint8_t UART_CheckCRC(uint8_t MyArray[] )
 {
         uint8_t crc = 0;
@@ -157,5 +157,5 @@ uint8_t UART_CheckCRC(uint8_t MyArray[] )
             crc = _crc_ibutton_update(crc, MyArray[i]);
         return crc; // must be 0
 }
-
+*/
 
